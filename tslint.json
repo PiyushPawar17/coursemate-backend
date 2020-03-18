@@ -1,0 +1,37 @@
+{
+	"defaultSeverity": "error",
+	"extends": ["tslint-eslint-rules", "tslint-config-prettier"],
+	"jsRules": {},
+	"linterOptions": {
+		"exclude": ["node_modules"]
+	},
+	"parserOptions": {
+		"ecmaVersion": 2020
+	},
+	"plugins": ["prettier"],
+	"env": {
+		"node": true,
+		"es6": true,
+		"mongo": true
+	},
+	"rules": {
+		"eofline": true,
+		"no-consecutive-blank-lines": true,
+		"no-duplicate-variable": true,
+		"no-multi-spaces": true,
+		"no-trailing-whitespace": true,
+		"no-unused-expression": [true, "allow-fast-null-checks"],
+		"no-var-keyword": true,
+		"one-variable-per-declaration": [true, "ignore-for-loop"],
+		"prefer-const": [true, { "destructuring": "all" }],
+		"radix": true,
+		"semicolon": [true, "always"],
+		"quotemark": [true, "single", "avoid-template"],
+		"space-within-parens": true,
+		"triple-equals": [true, "allow-null-check"],
+		"variable-name": [true, "allow-leading-underscore", "ban-keywords", "check-format", "allow-pascal-case"],
+		"comma-dangle": ["error", "never"],
+		"comma-spacing": ["warn", { "before": false, "after": true }],
+		"key-spacing": ["warn", { "afterColon": true }]
+	}
+}

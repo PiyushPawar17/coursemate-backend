@@ -1,0 +1,63 @@
+{
+	"name": "coursemate-backend",
+	"version": "0.1.0",
+	"description": "Back-end for CourseMate",
+	"main": "server.ts",
+	"license": "MIT",
+	"scripts": {
+		"start": "node dist/server.js",
+		"dev": "nodemon src/server.ts",
+		"build": "tsc -p .",
+		"test": "cross-env NODE_ENV=test jest --forceExit",
+		"format": "prettier --write src/**/*.ts",
+		"lint": "tslint src/**/*.ts"
+	},
+	"dependencies": {
+		"cookie-session": "^1.4.0",
+		"dotenv": "^8.2.0",
+		"express": "^4.17.1",
+		"mongoose": "^5.9.4",
+		"passport": "^0.4.1",
+		"passport-google-oauth20": "^2.0.0"
+	},
+	"devDependencies": {
+		"@types/cookie-session": "^2.0.38",
+		"@types/express": "^4.17.3",
+		"@types/jest": "^25.1.4",
+		"@types/mongoose": "^5.7.6",
+		"@types/node": "^13.9.1",
+		"@types/passport": "^1.0.3",
+		"@types/passport-google-oauth20": "^2.0.3",
+		"@types/supertest": "^2.0.8",
+		"cross-env": "^7.0.2",
+		"husky": "^4.2.3",
+		"jest": "^25.1.0",
+		"lint-staged": "^10.0.8",
+		"nodemon": "^2.0.2",
+		"prettier": "^1.19.1",
+		"supertest": "^4.0.2",
+		"ts-jest": "^25.2.1",
+		"ts-node": "^8.6.2",
+		"tslint": "^6.1.0",
+		"tslint-config-prettier": "^1.18.0",
+		"tslint-eslint-rules": "^5.4.0",
+		"typescript": "^3.8.3"
+	},
+	"husky": {
+		"hooks": {
+			"pre-commit": "lint-staged"
+		}
+	},
+	"lint-staged": {
+		"src/*.ts": [
+			"yarn lint",
+			"yarn format",
+			"git add"
+		],
+		"src/**/*.ts": [
+			"yarn lint",
+			"yarn format",
+			"git add"
+		]
+	}
+}
