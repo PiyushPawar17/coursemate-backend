@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import passport from 'passport';
 
 const router = Router();
@@ -8,7 +8,7 @@ const router = Router();
 // --- GET Requests ---
 
 // Route -> /auth/google
-// Google auth route
+// Access -> Public
 router.get(
 	'/google',
 	passport.authenticate('google', {
@@ -17,14 +17,14 @@ router.get(
 );
 
 // Route -> /auth/google/redirect
-// Callback route for Google redirect
-router.get('/google/redirect', passport.authenticate('google'), (req, res) => {
+// Access -> Private
+router.get('/google/redirect', passport.authenticate('google'), (req: Request, res: Response) => {
 	res.redirect('/');
 });
 
 // Route -> /auth/logout
-// Logs out user
-router.get('/logout', (req, res) => {
+// Access -> Private
+router.get('/logout', (req: Request, res: Response) => {
 	req.logOut();
 	res.redirect('/');
 });

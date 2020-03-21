@@ -4,11 +4,13 @@ mongoose.Promise = global.Promise;
 
 const connectDB = () => {
 	const { MONGO_URI = '' } = process.env;
+
 	mongoose
 		.connect(MONGO_URI, {
 			useNewUrlParser: true,
 			useCreateIndex: true,
-			useUnifiedTopology: true
+			useUnifiedTopology: true,
+			useFindAndModify: false
 		})
 		.then(() => {
 			console.log('MongoDB Connected');

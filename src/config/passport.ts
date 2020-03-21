@@ -1,5 +1,6 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import _ from 'lodash';
 
 import User from '../models/User';
 import { IUser } from '../models/types';
@@ -11,9 +12,18 @@ passport.serializeUser((user: IUser, done) => {
 });
 
 passport.deserializeUser((id, done) => {
-	User.findById(id).then(user => {
-		done(null, user);
-	});
+	User.findById(id)
+		.then((currentUser: IUser | null) => {
+			if (!currentUser) {
+				return done(null, false);
+			}
+
+			const user = _.pick(currentUser, ['_id', 'name', 'email', 'displayPicture', 'isAdmin', 'isSuperAdmin']);
+			done(null, user);
+		})
+		.catch(error => {
+			done(error);
+		});
 });
 
 passport.use(
@@ -27,24 +37,28 @@ passport.use(
 		(accessToken, refreshToken, profile, done) => {
 			// Callback on redirection
 			// Check if user exist
-			User.findOne({ googleID: profile.id }).then(currentUser => {
-				if (currentUser) {
-					// User exist
-					done(undefined, currentUser);
-				} else {
-					// Create new user
-					const newUser = new User({
-						name: profile.displayName,
-						googleID: profile.id,
-						email: profile.emails && profile.emails[0].value,
-						displayPicture: profile.photos && profile.photos[0].value
-					});
+			User.findOne({ googleID: profile.id })
+				.then(currentUser => {
+					if (currentUser) {
+						// User exist
+						return done(undefined, currentUser);
+					} else {
+						// Create new user
+						const newUser = new User({
+							name: profile.displayName,
+							googleID: profile.id,
+							email: (profile.emails && profile.emails[0].value) || '',
+							displayPicture: (profile.photos && profile.photos[0].value) || ''
+						});
 
-					newUser.save().then(user => {
-						done(undefined, user);
-					});
-				}
-			});
+						newUser.save().then(user => {
+							return done(undefined, user);
+						});
+					}
+				})
+				.catch(error => {
+					return done(error);
+				});
 		}
 	)
 );

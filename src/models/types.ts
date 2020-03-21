@@ -52,6 +52,9 @@ export interface ITag extends Document {
 	// Name of the tag
 	name: string;
 
+	// URL representation of the tag
+	url: string;
+
 	// Approved status of the tag
 	// Tag will appear on the Front-end only if it is approved
 	isApproved: boolean;
