@@ -12,7 +12,8 @@ const TutorialSchema = new Schema(
 		link: {
 			type: String,
 			required: true,
-			trim: true
+			trim: true,
+			unique: true
 		},
 		tags: {
 			type: [String],
