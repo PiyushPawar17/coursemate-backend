@@ -94,13 +94,10 @@ describe('Route /api/tags', () => {
 				.set('Cookie', adminCredentials)
 				.expect(200)
 				.expect(res => {
-					expect(res.body.unapprovedTags.length).toBe(tags.length - 1);
+					expect(res.body.tags.length).toBe(tags.length - 1);
 
-					expect(res.body.unapprovedTags[0].name).toBe('C++');
-					expect(res.body.unapprovedTags[1].name).toBe('Machine Learning');
-
-					expect(res.body.unapprovedTags[0].isApproved).toBe(false);
-					expect(res.body.unapprovedTags[1].isApproved).toBe(false);
+					expect(res.body.tags[0].isApproved).toBe(false);
+					expect(res.body.tags[1].isApproved).toBe(false);
 				})
 				.end(done);
 		});
@@ -142,6 +139,7 @@ describe('Route /api/tags', () => {
 					expect(res.body.tag.name).toBe(tag.name);
 					expect(res.body.tag.url).toBe('c-sharp');
 					expect(res.body.tag.isApproved).toBe(false);
+					expect(res.body.tag.submittedBy).toBe(users[1]._id.toHexString());
 				})
 				.end(done);
 		});

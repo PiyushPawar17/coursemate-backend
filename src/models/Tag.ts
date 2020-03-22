@@ -2,23 +2,30 @@ import mongoose, { Schema } from 'mongoose';
 
 import { ITag } from './types';
 
-const TagSchema = new Schema({
-	name: {
-		type: String,
-		required: true,
-		trim: true,
-		unique: true
+const TagSchema = new Schema(
+	{
+		name: {
+			type: String,
+			required: true,
+			trim: true,
+			unique: true
+		},
+		url: {
+			type: String,
+			trim: true,
+			lowercase: true
+		},
+		isApproved: {
+			type: Boolean,
+			default: false
+		},
+		submittedBy: {
+			type: Schema.Types.ObjectId,
+			ref: 'user'
+		}
 	},
-	url: {
-		type: String,
-		trim: true,
-		lowercase: true
-	},
-	isApproved: {
-		type: Boolean,
-		default: false
-	}
-});
+	{ timestamps: true }
+);
 
 TagSchema.pre('save', function(next) {
 	const tag = this as ITag;

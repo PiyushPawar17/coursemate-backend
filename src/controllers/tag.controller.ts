@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 
 import Tag from '../models/Tag';
+import { IUser } from '../models/types';
 
 import { validateTag } from '../utils/tags.utils';
 
@@ -26,9 +27,9 @@ export const getAllTags = (req: Request, res: Response) => {
 // Access -> Admin
 export const getUnapprovedTags = (req: Request, res: Response) => {
 	Tag.find({ isApproved: false })
-		.sort({ name: 1 })
+		.sort({ createdAt: -1 })
 		.then(unapprovedTags => {
-			res.json({ unapprovedTags });
+			res.json({ tags: unapprovedTags });
 		})
 		.catch(error => {
 			res.json({ error });
@@ -46,7 +47,12 @@ export const addTag = (req: Request, res: Response) => {
 		return res.status(400).json({ error: error.details[0].message });
 	}
 
-	const tag = new Tag(newTag);
+	const user = req.user as IUser;
+
+	const tag = new Tag({
+		...newTag,
+		submittedBy: user._id
+	});
 
 	tag.save()
 		.then(newTag => {

@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import _ from 'lodash';
 
 import User from '../models/User';
-
 import { IUser } from '../models/types';
 
 // Routes for /api/users

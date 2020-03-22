@@ -58,6 +58,9 @@ export interface ITag extends Document {
 	// Approved status of the tag
 	// Tag will appear on the Front-end only if it is approved
 	isApproved: boolean;
+
+	// User that submitted the tag
+	submittedBy: Schema.Types.ObjectId;
 }
 
 //----- Tutorial Interface -----
