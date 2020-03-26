@@ -4,7 +4,7 @@ import _ from 'lodash';
 import User from '../models/User';
 import { IUser } from '../models/types';
 
-// Routes for /api/users
+// Routes for /api/user
 
 // ----- GET REQUESTS -----
 

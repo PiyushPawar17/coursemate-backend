@@ -16,7 +16,7 @@ const TutorialSchema = new Schema(
 			unique: true
 		},
 		tags: {
-			type: [String],
+			type: [{ type: mongoose.Types.ObjectId, ref: 'tag' }],
 			required: true
 		},
 		educator: {
@@ -39,18 +39,18 @@ const TutorialSchema = new Schema(
 			enum: ['Beginner', 'Intermediate', 'Advanced'],
 			required: true
 		},
-		upvotes: [Schema.Types.ObjectId],
+		upvotes: [mongoose.Types.ObjectId],
 		comments: [
 			{
 				comment: { type: String, required: true },
 				commentedBy: { type: String, required: true },
-				userId: { type: Schema.Types.ObjectId, ref: 'user' }
+				userId: { type: mongoose.Types.ObjectId, ref: 'user' }
 			}
 		],
 		submittedBy: {
 			type: {
 				name: { type: String, required: true },
-				userId: { type: Schema.Types.ObjectId, ref: 'user' }
+				userId: { type: mongoose.Types.ObjectId, ref: 'user' }
 			},
 			required: true
 		},

@@ -20,7 +20,7 @@ const TagSchema = new Schema(
 			default: false
 		},
 		submittedBy: {
-			type: Schema.Types.ObjectId,
+			type: mongoose.Types.ObjectId,
 			ref: 'user'
 		}
 	},

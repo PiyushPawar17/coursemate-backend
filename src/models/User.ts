@@ -23,13 +23,13 @@ const UserSchema = new Schema(
 		},
 		submittedTutorials: [
 			{
-				type: Schema.Types.ObjectId,
+				type: mongoose.Types.ObjectId,
 				ref: 'tutorial'
 			}
 		],
 		favorites: [
 			{
-				type: Schema.Types.ObjectId,
+				type: mongoose.Types.ObjectId,
 				ref: 'tutorial'
 			}
 		],
@@ -43,7 +43,7 @@ const UserSchema = new Schema(
 		],
 		tracks: [
 			{
-				trackId: { type: Schema.Types.ObjectId, ref: 'track' },
+				trackId: { type: mongoose.Types.ObjectId, ref: 'track' },
 				trackProgressIndex: { type: Number, default: 0 }
 			}
 		],

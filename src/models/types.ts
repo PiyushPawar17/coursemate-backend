@@ -1,4 +1,4 @@
-import { Schema, Document } from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 
 //----- User Interface -----
 export interface IUser extends Document {
@@ -16,11 +16,11 @@ export interface IUser extends Document {
 
 	// List of tutorials submitted by the user
 	// The list will contain ObjectIds which will refer to Tutorial Schema
-	submittedTutorials?: [Schema.Types.ObjectId];
+	submittedTutorials?: [mongoose.Types.ObjectId];
 
 	// List of favorite tutorials of the user
 	// The list will contain ObjectIds which will refer to Tutorial Schema
-	favorites?: [Schema.Types.ObjectId];
+	favorites?: [mongoose.Types.ObjectId];
 
 	// List of notifications that a user got
 	notifications?: [
@@ -35,7 +35,7 @@ export interface IUser extends Document {
 	// The learning tracks that a user had subscribed to
 	tracks?: [
 		{
-			trackId: Schema.Types.ObjectId; // ID of the subscribed track
+			trackId: mongoose.Types.ObjectId; // ID of the subscribed track
 			trackProgressIndex: number; // Index of current tutorial in progress
 		}
 	];
@@ -60,7 +60,7 @@ export interface ITag extends Document {
 	isApproved: boolean;
 
 	// User that submitted the tag
-	submittedBy: Schema.Types.ObjectId;
+	submittedBy: mongoose.Types.ObjectId;
 }
 
 //----- Tutorial Interface -----
@@ -72,7 +72,7 @@ export interface ITutorial extends Document {
 	link: string;
 
 	// Tags related to the tutorial (at most 5)
-	tags: [string];
+	tags: [mongoose.Types.ObjectId];
 
 	// Name of the educator of the tutorial
 	educator: string;
@@ -88,21 +88,21 @@ export interface ITutorial extends Document {
 
 	// Number of upvotes tutorials got
 	// Will be list of ObjectIds of the users who upvoted
-	upvotes: [Schema.Types.ObjectId];
+	upvotes?: [mongoose.Types.ObjectId];
 
 	// List of comments on the tutorial
-	comments: [
+	comments?: [
 		{
 			comment: string; // Comment on the tutorial
 			commentedBy: string; // Name of the user
-			userId: Schema.Types.ObjectId; // ObjectId of the user
+			userId: mongoose.Types.ObjectId; // ObjectId of the user
 		}
 	];
 
 	// User that submitted the tutorial
 	submittedBy: {
 		name: string; // Name of the user
-		userId: Schema.Types.ObjectId; // ObjectId of the user
+		userId: mongoose.Types.ObjectId; // ObjectId of the user
 	};
 
 	// Time when submitted
@@ -122,7 +122,7 @@ export interface ITrack extends Document {
 	description: string;
 
 	// Tutorials in the track to follow
-	tutorials: [Schema.Types.ObjectId];
+	tutorials: [mongoose.Types.ObjectId];
 }
 
 //----- Feedback Interface -----

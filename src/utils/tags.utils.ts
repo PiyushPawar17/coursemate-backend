@@ -1,6 +1,6 @@
 import Joi from '@hapi/joi';
 
-export const validateTag = (tag: { name: string }) => {
+export const validateTag = (tag: any): Joi.ValidationResult => {
 	const tagSchema = Joi.object({
 		name: Joi.string()
 			.required()
@@ -10,6 +10,7 @@ export const validateTag = (tag: { name: string }) => {
 			.messages({
 				'any.required': 'Tag name is required',
 				'string.empty': 'Tag name is required',
+				'string.base': 'Tag name must be a string',
 				'string.max': 'Tag should contain maximum 30 characters'
 			})
 	}).options({ stripUnknown: true });

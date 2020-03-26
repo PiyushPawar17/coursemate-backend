@@ -17,7 +17,7 @@ const TrackSchema = new Schema(
 		},
 		tutorials: [
 			{
-				type: Schema.Types.ObjectId,
+				type: mongoose.Types.ObjectId,
 				ref: 'tutorial'
 			}
 		]

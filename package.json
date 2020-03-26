@@ -19,6 +19,7 @@
 		"express": "^4.17.1",
 		"lodash": "^4.17.15",
 		"mongoose": "^5.9.4",
+		"normalize-url": "^5.0.0",
 		"passport": "^0.4.1",
 		"passport-google-oauth20": "^2.0.0"
 	},
