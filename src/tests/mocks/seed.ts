@@ -14,7 +14,7 @@ export const removeUsers = (done: jest.DoneCallback) => {
 };
 
 export const populateTags = (done: jest.DoneCallback) => {
-	Tag.insertMany(tags).then(() => done());
+	Tag.create(tags).then(() => done());
 };
 
 export const removeTags = (done: jest.DoneCallback) => {

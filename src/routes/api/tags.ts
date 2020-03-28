@@ -8,7 +8,7 @@ import {
 	changeApprovedStatus,
 	deleteTag
 } from '../../controllers/tag.controller';
-import { loginCheck, adminCheck } from '../../utils/authCheck';
+import { loginCheck, adminCheck } from '../../utils/auth.utils';
 
 const router = Router();
 

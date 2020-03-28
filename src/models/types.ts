@@ -52,8 +52,8 @@ export interface ITag extends Document {
 	// Name of the tag
 	name: string;
 
-	// URL representation of the tag
-	url: string;
+	// Slug of the tag
+	slug: string;
 
 	// Approved status of the tag
 	// Tag will appear on the Front-end only if it is approved
@@ -70,6 +70,9 @@ export interface ITutorial extends Document {
 
 	// Link to the original tutorial
 	link: string;
+
+	// Slug of the tutorial
+	slug: string;
 
 	// Tags related to the tutorial (at most 5)
 	tags: [mongoose.Types.ObjectId];

@@ -17,7 +17,7 @@ import {
 	removeComment,
 	cancelRequest
 } from '../../controllers/tutorial.controller';
-import { loginCheck, adminCheck } from '../../utils/authCheck';
+import { loginCheck, adminCheck } from '../../utils/auth.utils';
 
 router
 	.route('/')

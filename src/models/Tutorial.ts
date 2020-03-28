@@ -2,6 +2,8 @@ import mongoose, { Schema } from 'mongoose';
 
 import { ITutorial } from './types';
 
+import { slugifyTutorial } from '../utils/utils';
+
 const TutorialSchema = new Schema(
 	{
 		title: {
@@ -14,6 +16,11 @@ const TutorialSchema = new Schema(
 			required: true,
 			trim: true,
 			unique: true
+		},
+		slug: {
+			type: String,
+			trim: true,
+			lowercase: true
 		},
 		tags: {
 			type: [{ type: mongoose.Types.ObjectId, ref: 'tag' }],
@@ -65,6 +72,21 @@ const TutorialSchema = new Schema(
 	},
 	{ timestamps: true }
 );
+
+TutorialSchema.pre('save', function(next) {
+	const tutorial = this as ITutorial;
+
+	// Converts spaces into '-' and few punctuations into characters
+	// and removes remaining punctuations. Adds a random string at the end
+	// to make a unique url
+	if (tutorial.isModified('title')) {
+		tutorial.slug = slugifyTutorial(tutorial.title);
+	}
+
+	this.validate();
+
+	next();
+});
 
 const Tutorial = mongoose.model<ITutorial>('tutorial', TutorialSchema);
 

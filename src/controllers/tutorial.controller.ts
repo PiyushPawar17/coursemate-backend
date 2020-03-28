@@ -15,7 +15,7 @@ import { validateTutorial, validateComment, validateUpdate } from '../utils/tuto
 // Access -> Public
 export const getAllTutorials = (req: Request, res: Response) => {
 	Tutorial.find({})
-		.populate('tags', ['name', 'url', 'isApproved'])
+		.populate('tags', ['name', 'slug', 'isApproved'])
 		.then(tutorials => {
 			res.json({ tutorials });
 		})
@@ -34,7 +34,7 @@ export const getTutorial = (req: Request, res: Response) => {
 	}
 
 	Tutorial.findById(tutorialId)
-		.populate('tags', ['name', 'url', 'isApproved'])
+		.populate('tags', ['name', 'slug', 'isApproved'])
 		.then(tutorial => {
 			if (!tutorial) {
 				res.status(404).json({ error: 'Tutorial not found' });
@@ -59,7 +59,7 @@ export const getTutorialByTag = (req: Request, res: Response) => {
 	const id = new mongoose.Types.ObjectId(tagId);
 
 	Tutorial.find({ tags: id })
-		.populate('tags', ['name', 'url', 'isApproved'])
+		.populate('tags', ['name', 'slug', 'isApproved'])
 		.then(tutorials => {
 			res.json({ tutorials });
 		})
@@ -72,7 +72,7 @@ export const getTutorialByTag = (req: Request, res: Response) => {
 // Access -> Admin
 export const getUnapprovedTutorials = (req: Request, res: Response) => {
 	Tutorial.find({ isApproved: false })
-		.populate('tags', ['name', 'url', 'isApproved'])
+		.populate('tags', ['name', 'slug', 'isApproved'])
 		.sort({ createdAt: -1 })
 		.then(unapprovedTutorials => {
 			res.json({ tutorials: unapprovedTutorials });
@@ -92,7 +92,8 @@ export const addTutorial = (req: Request, res: Response) => {
 		link: normalizeUrl(req.body.link, {
 			defaultProtocol: 'https://',
 			stripHash: true,
-			removeQueryParameters: ['*']
+			// Remove everything except list. "list" is present in query params in YouTube playlist.
+			removeQueryParameters: [/[^(list)]/]
 		})
 	});
 
@@ -199,10 +200,11 @@ export const updateTutorial = (req: Request, res: Response) => {
 	};
 
 	if (req.body.link) {
+		// Normalize link if present in request body before validating
 		tutorial.link = normalizeUrl(req.body.link, {
 			defaultProtocol: 'https://',
 			stripHash: true,
-			removeQueryParameters: ['*']
+			removeQueryParameters: [/[^(list)]/]
 		});
 	}
 
@@ -212,14 +214,36 @@ export const updateTutorial = (req: Request, res: Response) => {
 		return res.status(400).json({ error: error.details[0].message });
 	}
 
-	Tutorial.findByIdAndUpdate(tutorialId, updatedTutorial, { new: true })
-		.populate('tags', ['name', 'url', 'isApproved'])
-		.then(tutorial => {
-			if (!tutorial) {
-				return res.status(404).json({ error: 'Tutorial not found' });
+	Tutorial.findById(tutorialId)
+		.then(tutorialToUpdate => {
+			if (!tutorialToUpdate) {
+				res.status(404).json({ error: 'Tutorial not found' });
+			} else {
+				const { title, ...rest } = updatedTutorial;
+				// Check if title is updated
+				if (title) {
+					tutorialToUpdate.title = title;
+					// Call save to update the tutorial slug
+					return tutorialToUpdate.save().then(() => {
+						// Update rest of the fields
+						return Tutorial.findByIdAndUpdate(tutorialId, rest, { new: true }).populate('tags', [
+							'name',
+							'slug',
+							'isApproved'
+						]);
+					});
+				} else {
+					// Update the fields if title is not updated
+					return Tutorial.findByIdAndUpdate(tutorialId, rest, { new: true }).populate('tags', [
+						'name',
+						'slug',
+						'isApproved'
+					]);
+				}
 			}
-
-			res.status(200).json({ tutorial });
+		})
+		.then(tutorial => {
+			res.json({ tutorial });
 		})
 		.catch(error => {
 			res.json({ error });

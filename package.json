@@ -21,7 +21,8 @@
 		"mongoose": "^5.9.4",
 		"normalize-url": "^5.0.0",
 		"passport": "^0.4.1",
-		"passport-google-oauth20": "^2.0.0"
+		"passport-google-oauth20": "^2.0.0",
+		"shortid": "^2.2.15"
 	},
 	"devDependencies": {
 		"@types/cookie-session": "^2.0.38",
@@ -33,6 +34,7 @@
 		"@types/node": "^13.9.1",
 		"@types/passport": "^1.0.3",
 		"@types/passport-google-oauth20": "^2.0.3",
+		"@types/shortid": "^0.0.29",
 		"@types/supertest": "^2.0.8",
 		"cross-env": "^7.0.2",
 		"husky": "^4.2.3",

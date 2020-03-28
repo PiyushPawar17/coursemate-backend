@@ -142,7 +142,7 @@ describe('Route /api/tags', () => {
 					.expect(201)
 					.expect(res => {
 						expect(res.body.tag.name).toBe(tag.name);
-						expect(res.body.tag.url).toBe('c-sharp');
+						expect(res.body.tag.slug).toBe('c-sharp');
 						expect(res.body.tag.isApproved).toBe(false);
 						expect(res.body.tag.submittedBy).toBe(users[1]._id.toHexString());
 					})
@@ -228,7 +228,7 @@ describe('Route /api/tags', () => {
 					.expect(201)
 					.expect(res => {
 						expect(res.body.tag.name).toBe(tag.name);
-						expect(res.body.tag.url).toBe('new-tag');
+						expect(res.body.tag.slug).toBe('new-tag');
 						expect(res.body.tag.isApproved).toBe(false);
 					})
 					.end(done);
@@ -268,7 +268,7 @@ describe('Route /api/tags', () => {
 					.expect(200)
 					.expect(res => {
 						expect(res.body.tag.name).toBe(tag.name);
-						expect(res.body.tag.url).toBe('react');
+						expect(res.body.tag.slug).toBe('react');
 						expect(res.body.tag.isApproved).toBe(tags[0].isApproved);
 					})
 					.end(done);
@@ -324,7 +324,7 @@ describe('Route /api/tags', () => {
 					.expect(200)
 					.expect(res => {
 						expect(res.body.tag.name).toBe(tag.name);
-						expect(res.body.tag.url).toBe('new-tag');
+						expect(res.body.tag.slug).toBe('new-tag');
 						expect(res.body.tag.isApproved).toBe(tags[0].isApproved);
 					})
 					.end(done);
