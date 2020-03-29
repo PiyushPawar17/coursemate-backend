@@ -42,7 +42,7 @@ router.route('/comment/:tutorialId').post(loginCheck, addComment);
 
 router.route('/comment/:tutorialId/:commentId').delete(loginCheck, removeComment);
 
-router.route('/update').put(adminCheck, updateTutorial);
+router.route('/update/:tutorialId').put(adminCheck, updateTutorial);
 
 router.route('/approved-status').patch(adminCheck, changeApprovedStatus);
 

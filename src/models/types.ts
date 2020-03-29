@@ -2,6 +2,9 @@ import mongoose, { Document } from 'mongoose';
 
 //----- User Interface -----
 export interface IUser extends Document {
+	// Unique Id for the User
+	_id: mongoose.Types.ObjectId;
+
 	// Name of the user
 	name: string;
 
@@ -25,6 +28,7 @@ export interface IUser extends Document {
 	// List of notifications that a user got
 	notifications?: [
 		{
+			_id: mongoose.Types.ObjectId; // Mongo Id
 			message: string; // Message to be displayed
 			redirectLink?: string; // Where to redirect on click
 			isRead: boolean; // Is notification read by the user
@@ -35,6 +39,7 @@ export interface IUser extends Document {
 	// The learning tracks that a user had subscribed to
 	tracks?: [
 		{
+			_id: mongoose.Types.ObjectId; // Mongo Id
 			trackId: mongoose.Types.ObjectId; // ID of the subscribed track
 			trackProgressIndex: number; // Index of current tutorial in progress
 		}
@@ -49,6 +54,9 @@ export interface IUser extends Document {
 
 //----- Tag Interface -----
 export interface ITag extends Document {
+	// Unique Id for the Tag
+	_id: mongoose.Types.ObjectId;
+
 	// Name of the tag
 	name: string;
 
@@ -65,6 +73,9 @@ export interface ITag extends Document {
 
 //----- Tutorial Interface -----
 export interface ITutorial extends Document {
+	// Unique Id for the Tutorial
+	_id: mongoose.Types.ObjectId;
+
 	// Title of the tutorial
 	title: string;
 
@@ -96,6 +107,7 @@ export interface ITutorial extends Document {
 	// List of comments on the tutorial
 	comments?: [
 		{
+			_id: mongoose.Types.ObjectId; // Mongo Id
 			comment: string; // Comment on the tutorial
 			commentedBy: string; // Name of the user
 			userId: mongoose.Types.ObjectId; // ObjectId of the user
@@ -118,6 +130,9 @@ export interface ITutorial extends Document {
 
 //----- Track Interface -----
 export interface ITrack extends Document {
+	// Unique Id for the Track
+	_id: mongoose.Types.ObjectId;
+
 	// Name of the track
 	name: string;
 
@@ -130,6 +145,9 @@ export interface ITrack extends Document {
 
 //----- Feedback Interface -----
 export interface IFeedback extends Document {
+	// Unique Id for the Feedback
+	_id: mongoose.Types.ObjectId;
+
 	// Name of the user that gave the feedback
 	name: string;
 

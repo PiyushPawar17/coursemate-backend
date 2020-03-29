@@ -1,6 +1,6 @@
 {
 	"name": "coursemate-backend",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "Back-end for CourseMate",
 	"main": "server.ts",
 	"license": "MIT",
@@ -8,7 +8,8 @@
 		"start": "node dist/server.js",
 		"dev": "nodemon src/server.ts",
 		"build": "tsc -p .",
-		"test": "cross-env NODE_ENV=test jest --forceExit",
+		"test": "cross-env NODE_ENV=test jest --runInBand --forceExit",
+		"test:watch": "cross-env NODE_ENV=test jest --runInBand --watchAll",
 		"format": "prettier --write src/**/*.ts",
 		"lint": "tslint src/**/*.ts"
 	},

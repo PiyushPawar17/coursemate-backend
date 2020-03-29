@@ -1,5 +1,6 @@
 import Joi from '@hapi/joi';
 import mongoose from 'mongoose';
+import normalizeUrl from 'normalize-url';
 
 export const validateTutorial = (tutorial: any): Joi.ValidationResult => {
 	const tutorialSchema = Joi.object({
@@ -21,7 +22,14 @@ export const validateTutorial = (tutorial: any): Joi.ValidationResult => {
 				'string.empty': 'Tutorial link is required',
 				'string.base': 'Tutorial link must be a string',
 				'string.uri': 'Invalid tutorial link'
-			}),
+			})
+			.custom((value, helpers) =>
+				normalizeUrl(value, {
+					defaultProtocol: 'https://',
+					stripHash: true,
+					stripWWW: false
+				})
+			),
 		tags: Joi.array()
 			.required()
 			.items(
@@ -40,7 +48,7 @@ export const validateTutorial = (tutorial: any): Joi.ValidationResult => {
 				'any.required': 'At least one tag is required',
 				'any.invalid': 'Invalid Tag Id',
 				'array.includesRequiredUnknowns': 'At least one tag is required',
-				'array.length': 'A tutorial can contain maximum of 5 tags',
+				'array.max': 'A tutorial can contain maximum of 5 tags',
 				'string.empty': 'Tutorial tag cannot be empty',
 				'string.base': 'Tutorial tag must be a string'
 			}),
@@ -116,7 +124,14 @@ export const validateUpdate = (tutorial: any): Joi.ValidationResult => {
 				'string.empty': 'Tutorial link is required',
 				'string.base': 'Tutorial link must be a string',
 				'string.uri': 'Invalid tutorial link'
-			}),
+			})
+			.custom((value, helpers) =>
+				normalizeUrl(value, {
+					defaultProtocol: 'https://',
+					stripHash: true,
+					stripWWW: false
+				})
+			),
 		tags: Joi.array()
 			.items(
 				Joi.string()
@@ -134,7 +149,7 @@ export const validateUpdate = (tutorial: any): Joi.ValidationResult => {
 				'any.required': 'At least one tag is required',
 				'any.invalid': 'Invalid Tag Id',
 				'array.includesRequiredUnknowns': 'At least one tag is required',
-				'array.length': 'A tutorial can contain maximum of 5 tags',
+				'array.max': 'A tutorial can contain maximum of 5 tags',
 				'string.empty': 'Tutorial tag cannot be empty',
 				'string.base': 'Tutorial tag must be a string'
 			}),

@@ -15,6 +15,7 @@ import { validateTutorial, validateComment, validateUpdate } from '../utils/tuto
 // Access -> Public
 export const getAllTutorials = (req: Request, res: Response) => {
 	Tutorial.find({})
+		.sort({ title: 1 })
 		.populate('tags', ['name', 'slug', 'isApproved'])
 		.then(tutorials => {
 			res.json({ tutorials });
@@ -59,6 +60,7 @@ export const getTutorialByTag = (req: Request, res: Response) => {
 	const id = new mongoose.Types.ObjectId(tagId);
 
 	Tutorial.find({ tags: id })
+		.sort({ title: 1 })
 		.populate('tags', ['name', 'slug', 'isApproved'])
 		.then(tutorials => {
 			res.json({ tutorials });
@@ -72,8 +74,8 @@ export const getTutorialByTag = (req: Request, res: Response) => {
 // Access -> Admin
 export const getUnapprovedTutorials = (req: Request, res: Response) => {
 	Tutorial.find({ isApproved: false })
-		.populate('tags', ['name', 'slug', 'isApproved'])
 		.sort({ createdAt: -1 })
+		.populate('tags', ['name', 'slug', 'isApproved'])
 		.then(unapprovedTutorials => {
 			res.json({ tutorials: unapprovedTutorials });
 		})
@@ -87,15 +89,7 @@ export const getUnapprovedTutorials = (req: Request, res: Response) => {
 // Route -> /api/tutorials
 // Access -> Private
 export const addTutorial = (req: Request, res: Response) => {
-	const { value: newTutorial, error } = validateTutorial({
-		...req.body,
-		link: normalizeUrl(req.body.link, {
-			defaultProtocol: 'https://',
-			stripHash: true,
-			// Remove everything except list. "list" is present in query params in YouTube playlist.
-			removeQueryParameters: [/[^(list)]/]
-		})
-	});
+	const { value: newTutorial, error } = validateTutorial(req.body);
 
 	if (error) {
 		return res.status(400).json({ error: error.details[0].message });
@@ -186,10 +180,10 @@ export const addComment = (req: Request, res: Response) => {
 
 // ----- PUT REQUESTS -----
 
-// Route -> /api/tutorials/update
+// Route -> /api/tutorials/update/:tutorialId
 // Access -> Admin
 export const updateTutorial = (req: Request, res: Response) => {
-	const { tutorialId } = req.body;
+	const { tutorialId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(tutorialId)) {
 		return res.status(400).json({ error: 'Inavlid Tutorial ID' });
@@ -198,15 +192,6 @@ export const updateTutorial = (req: Request, res: Response) => {
 	const tutorial = {
 		...req.body
 	};
-
-	if (req.body.link) {
-		// Normalize link if present in request body before validating
-		tutorial.link = normalizeUrl(req.body.link, {
-			defaultProtocol: 'https://',
-			stripHash: true,
-			removeQueryParameters: [/[^(list)]/]
-		});
-	}
 
 	const { value: updatedTutorial, error } = validateUpdate(tutorial);
 
@@ -338,13 +323,36 @@ export const removeComment = (req: Request, res: Response) => {
 		return res.status(400).json({ error: 'Inavlid Comment ID' });
 	}
 
-	Tutorial.findByIdAndUpdate(tutorialId, { $pull: { comments: { _id: commentId } } }, { new: true })
-		.then(updatedTutorial => {
-			if (!updatedTutorial) {
-				return res.status(404).json({ error: 'Tutorial not found' });
-			}
+	const user = req.user as IUser;
 
-			res.json({ tutorial: updatedTutorial._id, comments: updatedTutorial.comments });
+	Tutorial.findById(tutorialId)
+		.then(tutorial => {
+			if (!tutorial) {
+				res.status(404).json({ error: 'Tutorial not found' });
+			} else {
+				if (tutorial.comments) {
+					const comment = tutorial.comments.filter(comment => comment._id.toHexString() === commentId)[0];
+
+					if (!comment) {
+						res.status(404).json({ error: 'Comment not found' });
+					} else if (comment.userId.toHexString() !== user._id.toHexString()) {
+						res.status(403).json({ error: 'Only comments by you can be deleted' });
+					} else {
+						return Tutorial.findByIdAndUpdate(
+							tutorialId,
+							{ $pull: { comments: { _id: commentId } } },
+							{ new: true }
+						);
+					}
+				} else {
+					res.json({ error: 'Comment not found' });
+				}
+			}
+		})
+		.then(updatedTutorial => {
+			if (updatedTutorial) {
+				res.json({ tutorial: updatedTutorial._id, comments: updatedTutorial.comments });
+			}
 		})
 		.catch(error => {
 			res.json({ error });
@@ -377,7 +385,9 @@ export const cancelRequest = (req: Request, res: Response) => {
 			}
 		})
 		.then(deletedTutorial => {
-			res.json({ tutorial: deletedTutorial });
+			if (deletedTutorial) {
+				res.json({ tutorial: deletedTutorial });
+			}
 		})
 		.catch(error => {
 			res.json({ error });

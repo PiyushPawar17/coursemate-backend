@@ -53,6 +53,12 @@ COOKIE_KEY=
 yarn test
 ```
 
+-   Watch tests
+
+```sh
+yarn test:watch
+```
+
 ## Contributing
 
 -   Have a look at the open issues. Pick an unassigned issue or create one.

@@ -7,6 +7,7 @@ import { app } from '../server';
 
 import { populateUsers, populateTags, removeUsers, removeTags } from './mocks/seed';
 import { users, tags } from './mocks/data';
+
 const { COOKIE_KEY = '' } = process.env;
 
 beforeAll(async () => {
@@ -70,7 +71,7 @@ describe('Route /api/tags', () => {
 	});
 
 	describe('GET /api/tags', () => {
-		describe('Valid response tests', () => {
+		describe('Valid request tests', () => {
 			it('should get all tags alphabetically sorted', done => {
 				request(app)
 					.get('/api/tags')
@@ -195,22 +196,6 @@ describe('Route /api/tags', () => {
 					.expect(400)
 					.expect(res => {
 						expect(res.body.error).toBe('Tag should contain maximum 30 characters');
-					})
-					.end(done);
-			});
-
-			it('should not allow user to add a tag which is not a string', done => {
-				const tag = {
-					name: 2
-				};
-
-				request(app)
-					.post('/api/tags')
-					.set('Cookie', userCredentials)
-					.send(tag)
-					.expect(400)
-					.expect(res => {
-						expect(res.body.error).toBe('Tag name must be a string');
 					})
 					.end(done);
 			});
