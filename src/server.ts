@@ -20,6 +20,7 @@ import authRoutes from './routes/auth';
 import userRoutes from './routes/api/users';
 import tagRoutes from './routes/api/tags';
 import tutorialRoutes from './routes/api/tutorials';
+import trackRoutes from './routes/api/tracks';
 
 connectDB();
 
@@ -45,6 +46,7 @@ app.use('/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/tags', tagRoutes);
 app.use('/api/tutorials', tutorialRoutes);
+app.use('/api/tracks', trackRoutes);
 
 const PORT = process.env.PORT || 5000;
 

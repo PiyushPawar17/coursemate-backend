@@ -75,7 +75,7 @@ export const updateTag = (req: Request, res: Response) => {
 	const { tagId } = req.body;
 
 	if (!mongoose.Types.ObjectId.isValid(tagId)) {
-		return res.status(400).json({ error: 'Inavlid Tag ID' });
+		return res.status(400).json({ error: 'Inavlid Tag Id' });
 	}
 
 	const { value: updatedTag, error } = validateTag(req.body);
@@ -109,7 +109,7 @@ export const changeApprovedStatus = (req: Request, res: Response) => {
 	const { tagId } = req.body;
 
 	if (!mongoose.Types.ObjectId.isValid(tagId)) {
-		return res.status(400).json({ error: 'Inavlid Tag ID' });
+		return res.status(400).json({ error: 'Inavlid Tag Id' });
 	}
 
 	Tag.findById(tagId)
@@ -136,7 +136,7 @@ export const deleteTag = (req: Request, res: Response) => {
 	const { tagId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(tagId)) {
-		return res.status(400).json({ error: 'Inavlid Tag ID' });
+		return res.status(400).json({ error: 'Inavlid Tag Id' });
 	}
 
 	Tag.findByIdAndDelete(tagId)

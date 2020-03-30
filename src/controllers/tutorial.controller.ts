@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
-import normalizeUrl from 'normalize-url';
 
 import Tutorial from '../models/Tutorial';
 import { IUser } from '../models/types';
@@ -16,7 +15,7 @@ import { validateTutorial, validateComment, validateUpdate } from '../utils/tuto
 export const getAllTutorials = (req: Request, res: Response) => {
 	Tutorial.find({})
 		.sort({ title: 1 })
-		.populate('tags', ['name', 'slug', 'isApproved'])
+		.populate('tags', ['name', 'slug'])
 		.then(tutorials => {
 			res.json({ tutorials });
 		})
@@ -31,11 +30,11 @@ export const getTutorial = (req: Request, res: Response) => {
 	const { tutorialId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(tutorialId)) {
-		return res.status(400).json({ error: 'Inavlid Tutorial ID' });
+		return res.status(400).json({ error: 'Inavlid Tutorial Id' });
 	}
 
 	Tutorial.findById(tutorialId)
-		.populate('tags', ['name', 'slug', 'isApproved'])
+		.populate('tags', ['name', 'slug'])
 		.then(tutorial => {
 			if (!tutorial) {
 				res.status(404).json({ error: 'Tutorial not found' });
@@ -54,14 +53,14 @@ export const getTutorialByTag = (req: Request, res: Response) => {
 	const { tagId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(tagId)) {
-		return res.status(400).json({ error: 'Inavlid Tag ID' });
+		return res.status(400).json({ error: 'Inavlid Tag Id' });
 	}
 
 	const id = new mongoose.Types.ObjectId(tagId);
 
 	Tutorial.find({ tags: id })
 		.sort({ title: 1 })
-		.populate('tags', ['name', 'slug', 'isApproved'])
+		.populate('tags', ['name', 'slug'])
 		.then(tutorials => {
 			res.json({ tutorials });
 		})
@@ -75,7 +74,7 @@ export const getTutorialByTag = (req: Request, res: Response) => {
 export const getUnapprovedTutorials = (req: Request, res: Response) => {
 	Tutorial.find({ isApproved: false })
 		.sort({ createdAt: -1 })
-		.populate('tags', ['name', 'slug', 'isApproved'])
+		.populate('tags', ['name', 'slug'])
 		.then(unapprovedTutorials => {
 			res.json({ tutorials: unapprovedTutorials });
 		})
@@ -125,7 +124,7 @@ export const addUpvote = (req: Request, res: Response) => {
 	const { tutorialId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(tutorialId)) {
-		return res.status(400).json({ error: 'Inavlid Tutorial ID' });
+		return res.status(400).json({ error: 'Inavlid Tutorial Id' });
 	}
 
 	const user = req.user as IUser;
@@ -149,7 +148,7 @@ export const addComment = (req: Request, res: Response) => {
 	const { tutorialId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(tutorialId)) {
-		return res.status(400).json({ error: 'Inavlid Tutorial ID' });
+		return res.status(400).json({ error: 'Inavlid Tutorial Id' });
 	}
 
 	const { value, error } = validateComment(req.body);
@@ -186,7 +185,7 @@ export const updateTutorial = (req: Request, res: Response) => {
 	const { tutorialId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(tutorialId)) {
-		return res.status(400).json({ error: 'Inavlid Tutorial ID' });
+		return res.status(400).json({ error: 'Inavlid Tutorial Id' });
 	}
 
 	const tutorial = {
@@ -213,16 +212,14 @@ export const updateTutorial = (req: Request, res: Response) => {
 						// Update rest of the fields
 						return Tutorial.findByIdAndUpdate(tutorialId, rest, { new: true }).populate('tags', [
 							'name',
-							'slug',
-							'isApproved'
+							'slug'
 						]);
 					});
 				} else {
 					// Update the fields if title is not updated
 					return Tutorial.findByIdAndUpdate(tutorialId, rest, { new: true }).populate('tags', [
 						'name',
-						'slug',
-						'isApproved'
+						'slug'
 					]);
 				}
 			}
@@ -243,7 +240,7 @@ export const changeApprovedStatus = (req: Request, res: Response) => {
 	const { tutorialId } = req.body;
 
 	if (!mongoose.Types.ObjectId.isValid(tutorialId)) {
-		return res.status(400).json({ error: 'Inavlid Tag ID' });
+		return res.status(400).json({ error: 'Inavlid Tutorial Id' });
 	}
 
 	Tutorial.findById(tutorialId)
@@ -270,7 +267,7 @@ export const deleteTutorial = (req: Request, res: Response) => {
 	const { tutorialId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(tutorialId)) {
-		return res.status(400).json({ error: 'Inavlid Tag ID' });
+		return res.status(400).json({ error: 'Inavlid Tutorial Id' });
 	}
 
 	Tutorial.findByIdAndDelete(tutorialId)
@@ -292,7 +289,7 @@ export const removeUpvote = (req: Request, res: Response) => {
 	const { tutorialId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(tutorialId)) {
-		return res.status(400).json({ error: 'Inavlid Tutorial ID' });
+		return res.status(400).json({ error: 'Inavlid Tutorial Id' });
 	}
 
 	const user = req.user as IUser;
@@ -316,11 +313,11 @@ export const removeComment = (req: Request, res: Response) => {
 	const { tutorialId, commentId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(tutorialId)) {
-		return res.status(400).json({ error: 'Inavlid Tutorial ID' });
+		return res.status(400).json({ error: 'Inavlid Tutorial Id' });
 	}
 
 	if (!mongoose.Types.ObjectId.isValid(commentId)) {
-		return res.status(400).json({ error: 'Inavlid Comment ID' });
+		return res.status(400).json({ error: 'Inavlid Comment Id' });
 	}
 
 	const user = req.user as IUser;
@@ -365,7 +362,7 @@ export const cancelRequest = (req: Request, res: Response) => {
 	const { tutorialId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(tutorialId)) {
-		return res.status(400).json({ error: 'Inavlid Tutorial ID' });
+		return res.status(400).json({ error: 'Inavlid Tutorial Id' });
 	}
 
 	const user = req.user as IUser;

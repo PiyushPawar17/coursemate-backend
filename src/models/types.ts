@@ -136,11 +136,27 @@ export interface ITrack extends Document {
 	// Name of the track
 	name: string;
 
+	// Slug of the track
+	slug: string;
+
 	// Short description about the track
 	description: string;
 
 	// Tutorials in the track to follow
 	tutorials: [mongoose.Types.ObjectId];
+
+	// User that submitted the track
+	submittedBy: {
+		name: string; // Name of the user
+		userId: mongoose.Types.ObjectId; // ObjectId of the user
+	};
+
+	// Time when submitted
+	submittedOn: Date;
+
+	// Approved status of the track
+	// Track will appear on the Front-end only if it is approved
+	isApproved: boolean;
 }
 
 //----- Feedback Interface -----
