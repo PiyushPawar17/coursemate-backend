@@ -5,7 +5,14 @@ import Keygrip from 'keygrip';
 
 import { app } from '../server';
 
-import { populateUsers, populateTags, populateTutorials, removeUsers, removeTags, removeTutorials } from './mocks/seed';
+import {
+	populateUsers,
+	populateTags,
+	populateTutorials,
+	removeUsers,
+	removeTags,
+	removeTutorials
+} from './mocks/seed';
 import { users, tags, tutorials } from './mocks/data';
 
 const { COOKIE_KEY = '' } = process.env;
@@ -80,8 +87,12 @@ describe('Route /api/tutorials', () => {
 					.expect(200)
 					.expect(res => {
 						expect(res.body.tutorials.length).toBe(tutorials.length);
-						expect(res.body.tutorials[0].title).toBe('Advanced React and Redux: 2018 Edition');
-						expect(res.body.tutorials[1].title).toBe('Four Ways To Style React Components');
+						expect(res.body.tutorials[0].title).toBe(
+							'Advanced React and Redux: 2018 Edition'
+						);
+						expect(res.body.tutorials[1].title).toBe(
+							'Four Ways To Style React Components'
+						);
 						expect(res.body.tutorials[2].title).toBe('Modern React with Redux');
 					})
 					.end(done);
@@ -106,7 +117,9 @@ describe('Route /api/tutorials', () => {
 						expect(res.body.tutorial.submittedBy.userId).toBe(
 							tutorials[0].submittedBy.userId.toHexString()
 						);
-						expect(res.body.tutorial.comments.length).toBe(tutorials[0].comments.length);
+						expect(res.body.tutorial.comments.length).toBe(
+							tutorials[0].comments.length
+						);
 						expect(res.body.tutorial.isApproved).toBe(tutorials[0].isApproved);
 					})
 					.end(done);
@@ -122,7 +135,9 @@ describe('Route /api/tutorials', () => {
 					.expect(200)
 					.expect(res => {
 						expect(res.body.tutorials.length).toBe(tutorials.length - 1);
-						expect(res.body.tutorials[0].title).toBe('Advanced React and Redux: 2018 Edition');
+						expect(res.body.tutorials[0].title).toBe(
+							'Advanced React and Redux: 2018 Edition'
+						);
 						expect(res.body.tutorials[1].title).toBe('Modern React with Redux');
 					})
 					.end(done);
@@ -198,7 +213,9 @@ describe('Route /api/tutorials', () => {
 						expect(res.body.tutorial.medium).toBe(tutorial.medium);
 						expect(res.body.tutorial.typeOfTutorial).toBe(tutorial.typeOfTutorial);
 						expect(res.body.tutorial.skillLevel).toBe(tutorial.skillLevel);
-						expect(res.body.tutorial.submittedBy.userId).toBe(users[1]._id.toHexString());
+						expect(res.body.tutorial.submittedBy.userId).toBe(
+							users[1]._id.toHexString()
+						);
 						expect(res.body.tutorial.isApproved).toBe(false);
 					})
 					.end(done);
@@ -279,7 +296,7 @@ describe('Route /api/tutorials', () => {
 					.end(done);
 			});
 
-			it('should not allow user to add tutorial with empty tags', done => {
+			it('should not allow user to add tutorial with no tags', done => {
 				const newTutorial = {
 					...tutorial,
 					tags: []
@@ -299,7 +316,14 @@ describe('Route /api/tutorials', () => {
 			it('should not allow user to add tutorial with more than 5 tags', done => {
 				const newTutorial = {
 					...tutorial,
-					tags: [tags[0]._id, tags[0]._id, tags[0]._id, tags[0]._id, tags[0]._id, tags[0]._id]
+					tags: [
+						tags[0]._id,
+						tags[0]._id,
+						tags[0]._id,
+						tags[0]._id,
+						tags[0]._id,
+						tags[0]._id
+					]
 				};
 
 				request(app)
@@ -359,7 +383,9 @@ describe('Route /api/tutorials', () => {
 					.send(newTutorial)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Tutorial medium should be one of "Video" or "Blog"');
+						expect(res.body.error).toBe(
+							'Tutorial medium should be one of "Video" or "Blog"'
+						);
 					})
 					.end(done);
 			});
@@ -376,7 +402,9 @@ describe('Route /api/tutorials', () => {
 					.send(newTutorial)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Tutorial type should be one of "Free" or "Paid"');
+						expect(res.body.error).toBe(
+							'Tutorial type should be one of "Free" or "Paid"'
+						);
 					})
 					.end(done);
 			});
@@ -615,7 +643,14 @@ describe('Route /api/tutorials', () => {
 			it('should not allow admin to update tutorial with more than 5 tags', done => {
 				const newTutorial = {
 					...tutorial,
-					tags: [tags[0]._id, tags[0]._id, tags[0]._id, tags[0]._id, tags[0]._id, tags[0]._id]
+					tags: [
+						tags[0]._id,
+						tags[0]._id,
+						tags[0]._id,
+						tags[0]._id,
+						tags[0]._id,
+						tags[0]._id
+					]
 				};
 
 				request(app)
@@ -675,7 +710,9 @@ describe('Route /api/tutorials', () => {
 					.send(newTutorial)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Tutorial medium should be one of "Video" or "Blog"');
+						expect(res.body.error).toBe(
+							'Tutorial medium should be one of "Video" or "Blog"'
+						);
 					})
 					.end(done);
 			});
@@ -692,7 +729,9 @@ describe('Route /api/tutorials', () => {
 					.send(newTutorial)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Tutorial type should be one of "Free" or "Paid"');
+						expect(res.body.error).toBe(
+							'Tutorial type should be one of "Free" or "Paid"'
+						);
 					})
 					.end(done);
 			});
@@ -872,7 +911,9 @@ describe('Route /api/tutorials', () => {
 		describe('Valid request tests', () => {
 			it('should allow user to delete the comment', done => {
 				request(app)
-					.delete(`/api/tutorials/comment/${tutorials[0]._id}/${tutorials[0].comments[1]._id}`)
+					.delete(
+						`/api/tutorials/comment/${tutorials[0]._id}/${tutorials[0].comments[1]._id}`
+					)
 					.set('Cookie', userCredentials)
 					.expect(200)
 					.expect(res => {
@@ -886,7 +927,9 @@ describe('Route /api/tutorials', () => {
 		describe('Auth validation tests', () => {
 			it('should not allow unauthenticated user to delete a comment', done => {
 				request(app)
-					.delete(`/api/tutorials/comment/${tutorials[0]._id}/${tutorials[0].comments[0]._id}`)
+					.delete(
+						`/api/tutorials/comment/${tutorials[0]._id}/${tutorials[0].comments[0]._id}`
+					)
 					.expect(401)
 					.expect(res => {
 						expect(res.body.error).toBe('You must be logged in to perform the action');
@@ -898,7 +941,9 @@ describe('Route /api/tutorials', () => {
 		describe('Access validation tests', () => {
 			it('should not allow user to delete other comment by other user', done => {
 				request(app)
-					.delete(`/api/tutorials/comment/${tutorials[0]._id}/${tutorials[0].comments[0]._id}`)
+					.delete(
+						`/api/tutorials/comment/${tutorials[0]._id}/${tutorials[0].comments[0]._id}`
+					)
 					.set('Cookie', userCredentials)
 					.expect(403)
 					.expect(res => {
@@ -930,7 +975,9 @@ describe('Route /api/tutorials', () => {
 					.set('Cookie', userCredentials)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('Tutorial is approved and cannot be deleted. Contact Admin.');
+						expect(res.body.error).toBe(
+							'Tutorial is approved and cannot be deleted. Contact Admin.'
+						);
 					})
 					.end(done);
 			});

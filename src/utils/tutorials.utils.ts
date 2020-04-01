@@ -83,7 +83,8 @@ export const validateTutorial = (tutorial: any): Joi.ValidationResult => {
 			.valid('Beginner', 'Intermediate', 'Advanced')
 			.messages({
 				'any.required': 'Tutorial skill level is required',
-				'any.only': 'Tutorial skill level should be one of "Beginner", "Intermediate" or "Advanced"'
+				'any.only':
+					'Tutorial skill level should be one of "Beginner", "Intermediate" or "Advanced"'
 			})
 	}).options({ stripUnknown: true });
 
@@ -180,7 +181,8 @@ export const validateUpdate = (tutorial: any): Joi.ValidationResult => {
 			.valid('Beginner', 'Intermediate', 'Advanced')
 			.messages({
 				'any.required': 'Tutorial skill level is required',
-				'any.only': 'Tutorial skill level should be one of "Beginner", "Intermediate" or "Advanced"'
+				'any.only':
+					'Tutorial skill level should be one of "Beginner", "Intermediate" or "Advanced"'
 			})
 	}).options({ stripUnknown: true });
 

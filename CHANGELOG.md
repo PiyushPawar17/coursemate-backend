@@ -1,3 +1,20 @@
+## 0.3.0 (April 1, 2020)
+
+### Added
+
+-   Routes and controllers for tracks
+-   Tests for tracks
+-   Mock data for tracks
+-   Util to slugify tracks
+
+### Updated
+
+-   Updated Track schema to include `slug`, `submittedBy`, `submittedOn` and `isApproved`
+
+### Bug Fixes
+
+-   Changed `tutorials` to `tracks` in responses of tracks
+
 ## 0.2.0 (March 29, 2020)
 
 ### Added
@@ -10,7 +27,7 @@
 -   `_id` property for objects in interfaces
 -   `test:watch` script
 
-### Updates
+### Updated
 
 -   Renamed `url` field to `slug`
 -   Updated server to not run in `test` environment

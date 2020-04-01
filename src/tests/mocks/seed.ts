@@ -1,8 +1,9 @@
 import User from '../../models/User';
 import Tag from '../../models/Tag';
 import Tutorial from '../../models/Tutorial';
+import Track from '../../models/Track';
 
-import { users, tags, tutorials } from './data';
+import { users, tags, tutorials, tracks } from './data';
 
 export const populateUsers = (done: jest.DoneCallback) => {
 	const userOne = new User(users[0]).save();
@@ -28,4 +29,12 @@ export const populateTutorials = (done: jest.DoneCallback) => {
 
 export const removeTutorials = (done: jest.DoneCallback) => {
 	Tutorial.deleteMany({}).then(() => done());
+};
+
+export const populateTracks = (done: jest.DoneCallback) => {
+	Track.create(tracks).then(() => done());
+};
+
+export const removeTracks = (done: jest.DoneCallback) => {
+	Track.deleteMany({}).then(() => done());
 };

@@ -82,7 +82,7 @@ export const addTrack = (req: Request, res: Response) => {
 	track
 		.save()
 		.then(newTrack => {
-			res.status(201).json({ tutorial: newTrack });
+			res.status(201).json({ track: newTrack });
 		})
 		.catch(error => {
 			if (error.code === 11000) {
@@ -104,11 +104,7 @@ export const updateTrack = (req: Request, res: Response) => {
 		return res.status(400).json({ error: 'Inavlid Track Id' });
 	}
 
-	const tutorial = {
-		...req.body
-	};
-
-	const { value: updatedTutorial, error } = validateUpdate(tutorial);
+	const { value: updatedTrack, error } = validateUpdate(req.body);
 
 	if (error) {
 		return res.status(400).json({ error: error.details[0].message });
@@ -117,24 +113,30 @@ export const updateTrack = (req: Request, res: Response) => {
 	Track.findById(trackId)
 		.then(trackToUpdate => {
 			if (!trackToUpdate) {
-				res.status(404).json({ error: 'Tutorial not found' });
+				res.status(404).json({ error: 'Track not found' });
 			} else {
-				const { name, ...rest } = updatedTutorial;
+				const { name, ...rest } = updatedTrack;
 				// Check if name is updated
 				if (name) {
 					trackToUpdate.name = name;
-					// Call save to update the tutorial slug
+					// Call save to update the track slug
 					return trackToUpdate.save().then(() => {
 						// Update rest of the fields
 						return Track.findByIdAndUpdate(trackId, rest, { new: true })
 							.populate({ path: 'tutorials' })
-							.populate({ path: 'tutorials', populate: { path: 'tags', select: 'name slug' } });
+							.populate({
+								path: 'tutorials',
+								populate: { path: 'tags', select: 'name slug' }
+							});
 					});
 				} else {
 					// Update the fields if name is not updated
 					return Track.findByIdAndUpdate(trackId, rest, { new: true })
 						.populate({ path: 'tutorials' })
-						.populate({ path: 'tutorials', populate: { path: 'tags', select: 'name slug' } });
+						.populate({
+							path: 'tutorials',
+							populate: { path: 'tags', select: 'name slug' }
+						});
 				}
 			}
 		})
@@ -162,7 +164,11 @@ export const changeApprovedStatus = (req: Request, res: Response) => {
 			if (!track) {
 				res.status(404).json({ error: 'Track not found' });
 			} else {
-				return Track.findByIdAndUpdate(trackId, { isApproved: !track.isApproved }, { new: true });
+				return Track.findByIdAndUpdate(
+					trackId,
+					{ isApproved: !track.isApproved },
+					{ new: true }
+				);
 			}
 		})
 		.then(updatedTrack => {
@@ -203,7 +209,7 @@ export const cancelRequest = (req: Request, res: Response) => {
 	const { trackId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(trackId)) {
-		return res.status(400).json({ error: 'Inavlid Tutorial Id' });
+		return res.status(400).json({ error: 'Inavlid Track Id' });
 	}
 
 	const user = req.user as IUser;
@@ -216,7 +222,9 @@ export const cancelRequest = (req: Request, res: Response) => {
 				if (track.submittedBy.userId.toHexString() !== user._id.toHexString()) {
 					res.status(403).json({ error: 'Only track owner can cancel request' });
 				} else if (track.isApproved) {
-					res.status(403).json({ error: 'Track is approved and cannot be deleted. Contact Admin.' });
+					res.status(403).json({
+						error: 'Track is approved and cannot be deleted. Contact Admin.'
+					});
 				} else {
 					return Track.findByIdAndDelete(trackId);
 				}

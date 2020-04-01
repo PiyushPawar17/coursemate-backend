@@ -18,7 +18,14 @@ passport.deserializeUser((id, done) => {
 				return done(null, false);
 			}
 
-			const user = _.pick(currentUser, ['_id', 'name', 'email', 'displayPicture', 'isAdmin', 'isSuperAdmin']);
+			const user = _.pick(currentUser, [
+				'_id',
+				'name',
+				'email',
+				'displayPicture',
+				'isAdmin',
+				'isSuperAdmin'
+			]);
 			done(null, user);
 		})
 		.catch(error => {

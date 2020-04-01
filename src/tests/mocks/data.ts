@@ -11,6 +11,10 @@ const tutorialOneId = new mongoose.Types.ObjectId();
 const tutorialTwoId = new mongoose.Types.ObjectId();
 const tutorialThreeId = new mongoose.Types.ObjectId();
 
+const trackOneId = new mongoose.Types.ObjectId();
+const trackTwoId = new mongoose.Types.ObjectId();
+const trackThreeId = new mongoose.Types.ObjectId();
+
 // User Data
 export const users = [
 	{
@@ -131,5 +135,42 @@ export const tutorials = [
 			}
 		],
 		isApproved: false
+	}
+];
+
+// Track Data
+export const tracks = [
+	{
+		_id: trackOneId,
+		name: 'Front-end Developer Roadmap',
+		description: 'Beginner to Advanced Front-end developer roadmap',
+		tutorials: [tutorialOneId, tutorialThreeId],
+		submittedBy: {
+			name: users[0].name,
+			userId: users[0]._id
+		},
+		isApproved: false
+	},
+	{
+		_id: trackTwoId,
+		name: 'Back-end Developer Roadmap',
+		description: 'Beginner to Advanced Back-end developer roadmap',
+		tutorials: [tutorialTwoId, tutorialThreeId],
+		submittedBy: {
+			name: users[1].name,
+			userId: users[1]._id
+		},
+		isApproved: false
+	},
+	{
+		_id: trackThreeId,
+		name: 'Full stack Developer Roadmap',
+		description: 'Beginner to Advanced Full stack developer roadmap',
+		tutorials: [tutorialOneId, tutorialTwoId, tutorialThreeId],
+		submittedBy: {
+			name: users[1].name,
+			userId: users[1]._id
+		},
+		isApproved: true
 	}
 ];

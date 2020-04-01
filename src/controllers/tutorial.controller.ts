@@ -210,17 +210,15 @@ export const updateTutorial = (req: Request, res: Response) => {
 					// Call save to update the tutorial slug
 					return tutorialToUpdate.save().then(() => {
 						// Update rest of the fields
-						return Tutorial.findByIdAndUpdate(tutorialId, rest, { new: true }).populate('tags', [
-							'name',
-							'slug'
-						]);
+						return Tutorial.findByIdAndUpdate(tutorialId, rest, {
+							new: true
+						}).populate('tags', ['name', 'slug']);
 					});
 				} else {
 					// Update the fields if title is not updated
-					return Tutorial.findByIdAndUpdate(tutorialId, rest, { new: true }).populate('tags', [
-						'name',
-						'slug'
-					]);
+					return Tutorial.findByIdAndUpdate(tutorialId, rest, {
+						new: true
+					}).populate('tags', ['name', 'slug']);
 				}
 			}
 		})
@@ -248,7 +246,11 @@ export const changeApprovedStatus = (req: Request, res: Response) => {
 			if (!tutorial) {
 				res.status(404).json({ error: 'Tutorial not found' });
 			} else {
-				return Tutorial.findByIdAndUpdate(tutorialId, { isApproved: !tutorial.isApproved }, { new: true });
+				return Tutorial.findByIdAndUpdate(
+					tutorialId,
+					{ isApproved: !tutorial.isApproved },
+					{ new: true }
+				);
 			}
 		})
 		.then(updatedTutorial => {
@@ -328,7 +330,9 @@ export const removeComment = (req: Request, res: Response) => {
 				res.status(404).json({ error: 'Tutorial not found' });
 			} else {
 				if (tutorial.comments) {
-					const comment = tutorial.comments.filter(comment => comment._id.toHexString() === commentId)[0];
+					const comment = tutorial.comments.filter(
+						comment => comment._id.toHexString() === commentId
+					)[0];
 
 					if (!comment) {
 						res.status(404).json({ error: 'Comment not found' });
@@ -375,7 +379,9 @@ export const cancelRequest = (req: Request, res: Response) => {
 				if (tutorial.submittedBy.userId.toHexString() !== user._id.toHexString()) {
 					res.status(403).json({ error: 'Only tutorial owner can cancel request' });
 				} else if (tutorial.isApproved) {
-					res.status(403).json({ error: 'Tutorial is approved and cannot be deleted. Contact Admin.' });
+					res.status(403).json({
+						error: 'Tutorial is approved and cannot be deleted. Contact Admin.'
+					});
 				} else {
 					return Tutorial.findByIdAndDelete(tutorialId);
 				}
