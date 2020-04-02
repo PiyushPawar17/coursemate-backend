@@ -1,3 +1,17 @@
+## 0.4.0 (April 3, 2020)
+
+### Added
+
+-   Routes and controllers for feedbacks
+-   Tests for feedbacks
+-   Mock data for feedbacks
+-   New user as super admin in mock data
+
+### Updated
+
+-   `name` field to `submittedBy` in feedback model
+-   Updated seed to add all users
+
 ## 0.3.0 (April 1, 2020)
 
 ### Added

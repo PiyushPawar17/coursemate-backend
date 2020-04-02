@@ -38,8 +38,8 @@ beforeEach(populateTags);
 beforeEach(populateTutorials);
 beforeEach(populateTracks);
 
-afterEach(removeTags);
 afterEach(removeUsers);
+afterEach(removeTags);
 afterEach(removeTutorials);
 afterEach(removeTracks);
 

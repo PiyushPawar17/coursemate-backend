@@ -153,7 +153,7 @@ export const deleteFeedback = (req: Request, res: Response) => {
 			if (!deletedFeedback) {
 				res.status(404).json({ error: 'Feedback not found' });
 			} else {
-				res.json({ tutorial: deletedFeedback });
+				res.json({ feedback: deletedFeedback });
 			}
 		})
 		.catch(error => {

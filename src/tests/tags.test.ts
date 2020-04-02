@@ -27,8 +27,8 @@ afterAll(async () => {
 beforeEach(populateUsers);
 beforeEach(populateTags);
 
-afterEach(removeTags);
 afterEach(removeUsers);
+afterEach(removeTags);
 
 describe('Route /api/tags', () => {
 	let userCredentials: string[];

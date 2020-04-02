@@ -35,8 +35,8 @@ beforeEach(populateUsers);
 beforeEach(populateTags);
 beforeEach(populateTutorials);
 
-afterEach(removeTags);
 afterEach(removeUsers);
+afterEach(removeTags);
 afterEach(removeTutorials);
 
 describe('Route /api/tutorials', () => {
