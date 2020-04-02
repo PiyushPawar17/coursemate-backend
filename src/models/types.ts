@@ -164,9 +164,6 @@ export interface IFeedback extends Document {
 	// Unique Id for the Feedback
 	_id: mongoose.Types.ObjectId;
 
-	// Name of the user that gave the feedback
-	name: string;
-
 	// Title of the feedback
 	title: string;
 
@@ -175,4 +172,10 @@ export interface IFeedback extends Document {
 
 	// Is feedback read
 	isRead: boolean;
+
+	// User that submitted the feedback
+	submittedBy: {
+		name: string; // Name of the user
+		userId: mongoose.Types.ObjectId; // ObjectId of the user
+	};
 }

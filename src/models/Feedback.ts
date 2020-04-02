@@ -4,11 +4,6 @@ import { IFeedback } from './types';
 
 const FeedbackSchema = new Schema(
 	{
-		name: {
-			type: String,
-			required: true,
-			trim: true
-		},
 		title: {
 			type: String,
 			required: true,
@@ -22,6 +17,13 @@ const FeedbackSchema = new Schema(
 		isRead: {
 			type: Boolean,
 			default: false
+		},
+		submittedBy: {
+			type: {
+				name: { type: String, required: true },
+				userId: { type: mongoose.Types.ObjectId, ref: 'user' }
+			},
+			required: true
 		}
 	},
 	{ timestamps: true }

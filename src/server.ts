@@ -21,6 +21,7 @@ import userRoutes from './routes/api/users';
 import tagRoutes from './routes/api/tags';
 import tutorialRoutes from './routes/api/tutorials';
 import trackRoutes from './routes/api/tracks';
+import feedbackRoutes from './routes/api/feedbacks';
 
 connectDB();
 
@@ -47,6 +48,7 @@ app.use('/api/user', userRoutes);
 app.use('/api/tags', tagRoutes);
 app.use('/api/tutorials', tutorialRoutes);
 app.use('/api/tracks', trackRoutes);
+app.use('/api/feedbacks', feedbackRoutes);
 
 const PORT = process.env.PORT || 5000;
 
