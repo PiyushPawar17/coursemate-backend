@@ -1,8 +1,12 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import _ from 'lodash';
 
 import User from '../models/User';
+import Tutorial from '../models/Tutorial';
 import { IUser } from '../models/types';
+
+import { validateUser, validateTrackProgress } from '../utils/user.utils';
 
 // Routes for /api/user
 
@@ -13,16 +17,16 @@ import { IUser } from '../models/types';
 export const getSubmittedTutorials = (req: Request, res: Response) => {
 	const user = req.user as IUser;
 
-	User.findById(user._id)
-		.populate('submittedTutorials')
-		.then(currentUser => {
-			const submittedTutorials = _.pick(currentUser, ['submittedTutorials']);
-
-			res.json({ submittedTutorials });
+	Tutorial.find({ 'submittedBy.userId': user._id })
+		.populate('tags', ['name', 'slug'])
+		.then(tutorials => {
+			res.json({ submittedTutorials: tutorials });
 		})
-		.catch(err => {
-			if (err.name === 'MissingSchemaError') {
+		.catch(error => {
+			if (error.name === 'MissingSchemaError') {
 				res.json({ submittedTutorials: [] });
+			} else {
+				res.json({ error });
 			}
 		});
 };
@@ -33,15 +37,20 @@ export const getFavorites = (req: Request, res: Response) => {
 	const user = req.user as IUser;
 
 	User.findById(user._id)
-		.populate('favorites')
-		.then(currentUser => {
-			const favorites = _.pick(currentUser, ['favorites']);
-
-			res.json({ favorites });
+		.populate({ path: 'favorites' })
+		.populate({ path: 'favorites', populate: { path: 'tags', select: 'name slug' } })
+		.then(user => {
+			if (!user) {
+				res.status(404).json({ error: 'User not found' });
+			} else {
+				res.json({ favorites: user.favorites });
+			}
 		})
-		.catch(err => {
-			if (err.name === 'MissingSchemaError') {
+		.catch(error => {
+			if (error.name === 'MissingSchemaError') {
 				res.json({ favorites: [] });
+			} else {
+				res.json({ error });
 			}
 		});
 };
@@ -51,8 +60,12 @@ export const getFavorites = (req: Request, res: Response) => {
 export const getNotifications = (req: Request, res: Response) => {
 	const user = req.user as IUser;
 
-	User.findById(user._id).then(currentUser => {
-		res.json({ notifications: currentUser?.notifications });
+	User.findById(user._id).then(user => {
+		if (!user) {
+			res.status(404).json({ error: 'User not found' });
+		} else {
+			res.json({ user: user._id, notifications: user.notifications });
+		}
 	});
 };
 
@@ -61,9 +74,18 @@ export const getNotifications = (req: Request, res: Response) => {
 export const getTracks = (req: Request, res: Response) => {
 	const user = req.user as IUser;
 
-	User.findById(user._id).then(currentUser => {
-		res.json({ tracks: currentUser?.tracks });
-	});
+	User.findById(user._id)
+		.populate({ path: 'tracks.track', populate: { path: 'track' } })
+		.populate({
+			path: 'tracks.track',
+			populate: {
+				path: 'tutorials',
+				populate: { path: 'tags', select: 'name slug' }
+			}
+		})
+		.then(currentUser => {
+			res.json({ tracks: currentUser?.tracks });
+		});
 };
 
 // Route -> /api/user/all-users
@@ -72,4 +94,360 @@ export const getAllUsers = (req: Request, res: Response) => {
 	User.find({}).then(users => {
 		res.json({ users });
 	});
+};
+
+// ----- POST REQUESTS -----
+
+// Route -> /api/user/favorites/:tutorialId
+// Access -> Private
+export const addToFavorites = (req: Request, res: Response) => {
+	const { tutorialId } = req.params;
+
+	if (!mongoose.Types.ObjectId.isValid(tutorialId)) {
+		return res.status(400).json({ error: 'Inavlid Tutorial Id' });
+	}
+
+	const user = req.user as IUser;
+
+	User.findByIdAndUpdate(user._id, { $addToSet: { favorites: tutorialId } }, { new: true })
+		.populate({ path: 'favorites' })
+		.populate({ path: 'favorites', populate: { path: 'tags', select: 'name slug' } })
+		.then(user => {
+			if (!user) {
+				res.status(404).json({ error: 'User not found' });
+			} else {
+				res.json({ user: user._id, favorites: user.favorites });
+			}
+		})
+		.catch(error => {
+			res.json({ error });
+		});
+};
+
+// Route -> /api/user/tracks/:trackId
+// Access -> Private
+export const subscribeToTrack = (req: Request, res: Response) => {
+	const { trackId } = req.params;
+
+	if (!mongoose.Types.ObjectId.isValid(trackId)) {
+		return res.status(400).json({ error: 'Inavlid Track Id' });
+	}
+
+	const user = req.user as IUser;
+
+	User.findById(user._id)
+		.then(user => {
+			if (!user) {
+				res.status(404).json({ error: 'User not found' });
+			} else if (!user.tracks) {
+				// If not subscribed to any track
+				return User.findByIdAndUpdate(
+					user._id,
+					{ $addToSet: { tracks: { track: trackId } } },
+					{ new: true }
+				);
+			} else {
+				const track = user.tracks.filter(track => track.track.toHexString() === trackId)[0];
+
+				// Check if not subscribed to track
+				if (!track) {
+					return User.findByIdAndUpdate(
+						user._id,
+						{ $addToSet: { tracks: { track: trackId } } },
+						{ new: true }
+					);
+				} else {
+					return Promise.resolve(user);
+				}
+			}
+		})
+		.then(user => {
+			if (user) {
+				User.findById(user._id)
+					.populate({ path: 'tracks.track', populate: { path: 'track' } })
+					.populate({
+						path: 'tracks.track',
+						populate: {
+							path: 'tutorials',
+							populate: { path: 'tags', select: 'name slug' }
+						}
+					})
+					.then(user => {
+						if (!user) {
+							res.status(404).json({ error: 'User not found' });
+						} else {
+							res.json({ user: user._id, tracks: user.tracks });
+						}
+					});
+			}
+		})
+		.catch(error => {
+			res.json({ error });
+		});
+};
+
+// ----- PUT REQUESTS -----
+
+// Route -> /api/user/update
+// Access -> Private
+export const updateUser = (req: Request, res: Response) => {
+	const { value: updatedUser, error } = validateUser(req.body);
+
+	if (error) {
+		return res.status(400).json({ error: error.details[0].message });
+	}
+
+	const user = req.user as IUser;
+
+	User.findByIdAndUpdate(user._id, { name: updatedUser.name }, { new: true })
+		.then(currentUser => {
+			if (!currentUser) {
+				res.status(404).json({ error: 'User not found' });
+			} else {
+				const user = _.pick(currentUser, [
+					'_id',
+					'name',
+					'email',
+					'displayPicture',
+					'isAdmin',
+					'isSuperAdmin'
+				]);
+
+				res.json({ user });
+			}
+		})
+		.catch(error => {
+			res.json({ error });
+		});
+};
+
+// ----- PATCH REQUESTS -----
+
+// Route -> /api/user/notifications
+// Access -> Private
+export const readAllNotifications = (req: Request, res: Response) => {
+	const user = req.user as IUser;
+
+	User.findByIdAndUpdate(user._id, { 'notifications.$[].isRead': true }, { new: true })
+		.then(user => {
+			if (!user) {
+				res.status(404).json({ error: 'User not found' });
+			} else {
+				res.json({ user: user._id, notifications: user.notifications });
+			}
+		})
+		.catch(error => {
+			res.json({ error });
+		});
+};
+
+// Route -> /api/user/notifications/:notificationId
+// Access -> Private
+export const readNotification = (req: Request, res: Response) => {
+	const { notificationId } = req.params;
+
+	if (!mongoose.Types.ObjectId.isValid(notificationId)) {
+		return res.status(400).json({ error: 'Inavlid Notification Id' });
+	}
+
+	const user = req.user as IUser;
+
+	User.findById(user._id)
+		.then(user => {
+			if (!user) {
+				res.status(404).json({ error: 'User not found' });
+			} else {
+				if (!user.notifications) {
+					res.status(404).json({ error: 'Notification not found' });
+				} else {
+					// Check of notification exist
+					const notification = user.notifications.filter(
+						n => n._id.toHexString() === notificationId
+					)[0];
+
+					if (!notification) {
+						res.status(404).json({ error: 'Notification not found' });
+					} else {
+						notification.isRead = true;
+						return user.save();
+					}
+				}
+			}
+		})
+		.then(user => {
+			if (user) {
+				res.json({ user: user._id, notifications: user.notifications });
+			}
+		})
+		.catch(error => {
+			res.json({ error });
+		});
+};
+
+// Route -> /api/user/tracks/:trackId
+// Access -> Private
+export const updateTrackProgress = (req: Request, res: Response) => {
+	const { trackId } = req.params;
+
+	if (!mongoose.Types.ObjectId.isValid(trackId)) {
+		return res.status(400).json({ error: 'Inavlid Track Id' });
+	}
+
+	const { value: updatedTrackProgress, error } = validateTrackProgress(req.body);
+
+	if (error) {
+		return res.status(400).json({ error: error.details[0].message });
+	}
+
+	const user = req.user as IUser;
+
+	User.findById(user._id)
+		.then(user => {
+			if (!user) {
+				res.status(404).json({ error: 'User not found' });
+			} else {
+				if (!user.tracks) {
+					res.status(404).json({ error: 'Track not found' });
+				} else {
+					const track = user.tracks.filter(t => t.track.toHexString() === trackId)[0];
+
+					// Check if subscribed to track
+					if (!track) {
+						res.status(404).json({ error: 'Track not found' });
+					} else {
+						track.trackProgressIndex += updatedTrackProgress.trackProgressIndex;
+
+						return user.save();
+					}
+				}
+			}
+		})
+		.then(user => {
+			if (user) {
+				res.json({ user: user._id, trackId, tracks: user.tracks });
+			}
+		})
+		.catch(error => {
+			if (error.name === 'ValidationError') {
+				res.status(400).json({ error: 'Track progress cannot be negative' });
+			} else {
+				res.json({ error });
+			}
+		});
+};
+
+// Route -> /api/user/admin-status
+// Access -> Private
+export const changeAdminStatus = (req: Request, res: Response) => {
+	const { userId } = req.body;
+
+	if (!mongoose.Types.ObjectId.isValid(userId)) {
+		return res.status(400).json({ error: 'Inavlid User Id' });
+	}
+
+	User.findById(userId)
+		.then(user => {
+			if (!user) {
+				res.status(404).json({ error: 'User not found' });
+			} else {
+				return User.findByIdAndUpdate(userId, { isAdmin: !user.isAdmin }, { new: true });
+			}
+		})
+		.then(updatedUser => {
+			if (updatedUser) {
+				const user = _.pick(updatedUser, [
+					'_id',
+					'name',
+					'email',
+					'displayPicture',
+					'isAdmin',
+					'isSuperAdmin'
+				]);
+
+				res.json({ user });
+			}
+		})
+		.catch(error => {
+			res.json({ error });
+		});
+};
+
+// ----- DELETE REQUESTS -----
+
+// Route -> /api/user/favorites/:tutorialId
+// Access -> Private
+export const removeFromFavorites = (req: Request, res: Response) => {
+	const { tutorialId } = req.params;
+
+	if (!mongoose.Types.ObjectId.isValid(tutorialId)) {
+		return res.status(400).json({ error: 'Inavlid Tutorial Id' });
+	}
+
+	const user = req.user as IUser;
+
+	User.findByIdAndUpdate(user._id, { $pull: { favorites: tutorialId } }, { new: true })
+		.then(user => {
+			if (!user) {
+				res.status(404).json({ error: 'User not found' });
+			} else {
+				res.json({ user: user._id, favorites: user.favorites });
+			}
+		})
+		.catch(error => {
+			res.json({ error });
+		});
+};
+
+// Route -> /api/user/tracks/:trackId
+// Access -> Private
+export const unsubscribeFromTrack = (req: Request, res: Response) => {
+	const { trackId } = req.params;
+
+	if (!mongoose.Types.ObjectId.isValid(trackId)) {
+		return res.status(400).json({ error: 'Inavlid Track Id' });
+	}
+
+	const user = req.user as IUser;
+
+	User.findByIdAndUpdate(user._id, { $pull: { tracks: { track: trackId } } }, { new: true })
+		.populate({ path: 'tracks.track', populate: { path: 'track' } })
+		.populate({
+			path: 'tracks.track',
+			populate: {
+				path: 'tutorials',
+				populate: { path: 'tags', select: 'name slug' }
+			}
+		})
+		.then(user => {
+			if (!user) {
+				res.status(404).json({ error: 'User not found' });
+			} else {
+				res.json({ user: user._id, tracks: user.tracks });
+			}
+		})
+		.catch(error => {
+			res.json({ error });
+		});
+};
+
+// Route -> /api/user/delete/:userId
+// Access -> SuperAdmin
+export const deleteUser = (req: Request, res: Response) => {
+	const { userId } = req.params;
+
+	if (!mongoose.Types.ObjectId.isValid(userId)) {
+		return res.status(400).json({ error: 'Inavlid User Id' });
+	}
+
+	User.findByIdAndRemove(userId)
+		.then(user => {
+			if (!user) {
+				res.status(404).json({ error: 'User not found' });
+			} else {
+				res.json({ user });
+			}
+		})
+		.catch(error => {
+			res.json({ error });
+		});
 };

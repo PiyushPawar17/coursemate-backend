@@ -43,8 +43,8 @@ const UserSchema = new Schema(
 		],
 		tracks: [
 			{
-				trackId: { type: mongoose.Types.ObjectId, ref: 'track' },
-				trackProgressIndex: { type: Number, default: 0 }
+				track: { type: mongoose.Types.ObjectId, ref: 'track' },
+				trackProgressIndex: { type: Number, default: 0, min: 0 }
 			}
 		],
 		isAdmin: {

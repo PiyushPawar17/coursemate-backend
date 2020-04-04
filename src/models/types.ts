@@ -40,7 +40,7 @@ export interface IUser extends Document {
 	tracks?: [
 		{
 			_id: mongoose.Types.ObjectId; // Mongo Id
-			trackId: mongoose.Types.ObjectId; // ID of the subscribed track
+			track: mongoose.Types.ObjectId; // ID of the subscribed track
 			trackProgressIndex: number; // Index of current tutorial in progress
 		}
 	];
