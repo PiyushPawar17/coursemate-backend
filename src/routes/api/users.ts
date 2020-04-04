@@ -13,6 +13,7 @@ import {
 	readNotification,
 	updateTrackProgress,
 	changeAdminStatus,
+	changeSuperAdminStatus,
 	removeFromFavorites,
 	unsubscribeFromTrack,
 	deleteUser
@@ -50,6 +51,8 @@ router.route('/update').put(loginCheck, updateUser);
 router.route('/notifications/:notificationId').patch(loginCheck, readNotification);
 
 router.route('/admin-status').patch(superAdminCheck, changeAdminStatus);
+
+router.route('/super-admin-status').patch(superAdminCheck, changeSuperAdminStatus);
 
 router.route('/delete/:userId').delete(superAdminCheck, deleteUser);
 

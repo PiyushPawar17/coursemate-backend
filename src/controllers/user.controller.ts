@@ -337,7 +337,7 @@ export const updateTrackProgress = (req: Request, res: Response) => {
 };
 
 // Route -> /api/user/admin-status
-// Access -> Private
+// Access -> SuperAdmin
 export const changeAdminStatus = (req: Request, res: Response) => {
 	const { userId } = req.body;
 
@@ -350,7 +350,54 @@ export const changeAdminStatus = (req: Request, res: Response) => {
 			if (!user) {
 				res.status(404).json({ error: 'User not found' });
 			} else {
-				return User.findByIdAndUpdate(userId, { isAdmin: !user.isAdmin }, { new: true });
+				// Make super admin false if admin is false
+				const updatedStatus = {
+					isAdmin: !user.isAdmin,
+					isSuperAdmin: !user.isAdmin ? user.isSuperAdmin : false
+				};
+
+				return User.findByIdAndUpdate(userId, updatedStatus, { new: true });
+			}
+		})
+		.then(updatedUser => {
+			if (updatedUser) {
+				const user = _.pick(updatedUser, [
+					'_id',
+					'name',
+					'email',
+					'displayPicture',
+					'isAdmin',
+					'isSuperAdmin'
+				]);
+
+				res.json({ user });
+			}
+		})
+		.catch(error => {
+			res.json({ error });
+		});
+};
+
+// Route -> /api/user/super-admin-status
+// Access -> SuperAdmin
+export const changeSuperAdminStatus = (req: Request, res: Response) => {
+	const { userId } = req.body;
+
+	if (!mongoose.Types.ObjectId.isValid(userId)) {
+		return res.status(400).json({ error: 'Inavlid User Id' });
+	}
+
+	User.findById(userId)
+		.then(user => {
+			if (!user) {
+				res.status(404).json({ error: 'User not found' });
+			} else {
+				// Make admin true when when super admin is true
+				return User.findByIdAndUpdate(
+					userId,
+					{ isSuperAdmin: !user.isSuperAdmin, isAdmin: true },
+					{ new: true }
+				);
 			}
 		})
 		.then(updatedUser => {
