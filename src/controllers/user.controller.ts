@@ -20,11 +20,11 @@ export const getSubmittedTutorials = (req: Request, res: Response) => {
 	Tutorial.find({ 'submittedBy.userId': user._id })
 		.populate('tags', ['name', 'slug'])
 		.then(tutorials => {
-			res.json({ submittedTutorials: tutorials });
+			res.json({ tutorials });
 		})
 		.catch(error => {
 			if (error.name === 'MissingSchemaError') {
-				res.json({ submittedTutorials: [] });
+				res.json({ user: user._id, tutorials: [] });
 			} else {
 				res.json({ error });
 			}
@@ -48,7 +48,7 @@ export const getFavorites = (req: Request, res: Response) => {
 		})
 		.catch(error => {
 			if (error.name === 'MissingSchemaError') {
-				res.json({ favorites: [] });
+				res.json({ user: user._id, favorites: [] });
 			} else {
 				res.json({ error });
 			}
@@ -83,17 +83,28 @@ export const getTracks = (req: Request, res: Response) => {
 				populate: { path: 'tags', select: 'name slug' }
 			}
 		})
-		.then(currentUser => {
-			res.json({ tracks: currentUser?.tracks });
+		.then(user => {
+			if (!user) {
+				res.status(404).json({ error: 'User not found' });
+			} else {
+				res.json({ user: user._id, tracks: user.tracks });
+			}
+		})
+		.catch(error => {
+			res.json({ error });
 		});
 };
 
 // Route -> /api/user/all-users
 // Access -> SuperAdmin
 export const getAllUsers = (req: Request, res: Response) => {
-	User.find({}).then(users => {
-		res.json({ users });
-	});
+	User.find({})
+		.then(users => {
+			res.json({ users });
+		})
+		.catch(error => {
+			res.json({ error });
+		});
 };
 
 // ----- POST REQUESTS -----

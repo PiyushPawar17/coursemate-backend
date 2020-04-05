@@ -27,6 +27,28 @@ export const users = [
 		name: 'User1',
 		displayPicture: '',
 		googleID: '11223344',
+		submittedTutorials: [tutorialOneId],
+		favorites: [tutorialOneId, tutorialTwoId],
+		notifications: [
+			{
+				_id: new mongoose.Types.ObjectId(),
+				message: 'Notification Message 1',
+				redirectLink: '/somelink',
+				isRead: false
+			}
+		],
+		tracks: [
+			{
+				_id: new mongoose.Types.ObjectId(),
+				track: trackOneId,
+				trackProgressIndex: 0
+			},
+			{
+				_id: new mongoose.Types.ObjectId(),
+				track: trackThreeId,
+				trackProgressIndex: 2
+			}
+		],
 		isAdmin: true,
 		isSuperAdmin: false
 	},
@@ -36,6 +58,29 @@ export const users = [
 		name: 'User2',
 		displayPicture: '',
 		googleID: '55667788',
+		submittedTutorials: [tutorialTwoId, tutorialThreeId],
+		favorites: [tutorialThreeId],
+		notifications: [
+			{
+				_id: new mongoose.Types.ObjectId(),
+				message: 'Notification Message 1',
+				redirectLink: '/somelink',
+				isRead: false
+			},
+			{
+				_id: new mongoose.Types.ObjectId(),
+				message: 'Notification Message 2',
+				redirectLink: '/somelink-2',
+				isRead: false
+			}
+		],
+		tracks: [
+			{
+				_id: new mongoose.Types.ObjectId(),
+				track: trackOneId,
+				trackProgressIndex: 0
+			}
+		],
 		isAdmin: false,
 		isSuperAdmin: false
 	},
@@ -45,6 +90,10 @@ export const users = [
 		name: 'User3',
 		displayPicture: '',
 		googleID: '12121212',
+		submittedTutorials: [],
+		favorites: [tutorialOneId, tutorialTwoId, tutorialThreeId],
+		notifications: [],
+		tracks: [],
 		isAdmin: true,
 		isSuperAdmin: true
 	}

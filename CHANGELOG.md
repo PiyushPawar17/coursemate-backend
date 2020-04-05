@@ -1,3 +1,17 @@
+## 0.5.0 (April 6, 2020)
+
+### Added
+
+-   Added remaining routes for user
+-   Tests for user
+
+### Updated
+
+-   Updated authentication check in user routes
+-   `trackId` field to `track` in User model
+-   `trackProgressIndex` to have minimum of 0
+-   Mock data for user to include `submittedTutorials`, `notifications`, `favorites` and `tracks`
+
 ## 0.4.0 (April 3, 2020)
 
 ### Added
