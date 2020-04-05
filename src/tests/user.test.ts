@@ -15,7 +15,7 @@ import {
 	removeTutorials,
 	removeTracks
 } from './mocks/seed';
-import { users, tags, tutorials, tracks } from './mocks/data';
+import { users, tutorials, tracks } from './mocks/data';
 
 const { COOKIE_KEY = '' } = process.env;
 
@@ -43,7 +43,7 @@ afterEach(removeTags);
 afterEach(removeTutorials);
 afterEach(removeTracks);
 
-describe('Route /api/tutorials', () => {
+describe('Route /api/user', () => {
 	let userCredentials: string[];
 	let adminCredentials: string[];
 	let superAdminCredentials: string[];

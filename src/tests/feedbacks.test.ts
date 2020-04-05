@@ -30,7 +30,7 @@ beforeEach(populateFeedbacks);
 afterEach(removeUsers);
 afterEach(removeFeedbacks);
 
-describe('Route /api/tags', () => {
+describe('Route /api/feedbacks', () => {
 	let userCredentials: string[];
 	let adminCredentials: string[];
 	let superAdminCredentials: string[];

@@ -43,7 +43,7 @@ afterEach(removeTags);
 afterEach(removeTutorials);
 afterEach(removeTracks);
 
-describe('Route /api/tutorials', () => {
+describe('Route /api/tracks', () => {
 	let userCredentials: string[];
 	let adminCredentials: string[];
 
