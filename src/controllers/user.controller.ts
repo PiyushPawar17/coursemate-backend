@@ -239,11 +239,22 @@ export const updateUser = (req: Request, res: Response) => {
 export const readAllNotifications = (req: Request, res: Response) => {
 	const user = req.user as IUser;
 
-	User.findByIdAndUpdate(user._id, { 'notifications.$[].isRead': true }, { new: true })
+	User.findById(user._id)
 		.then(user => {
 			if (!user) {
 				res.status(404).json({ error: 'User not found' });
 			} else {
+				if (user.notifications) {
+					user.notifications.forEach(notification => {
+						notification.isRead = true;
+					});
+				}
+
+				return user.save();
+			}
+		})
+		.then(user => {
+			if (user) {
 				res.json({ user: user._id, notifications: user.notifications });
 			}
 		})

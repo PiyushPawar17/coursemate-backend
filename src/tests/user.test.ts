@@ -416,7 +416,6 @@ describe('Route /api/user', () => {
 					.set('Cookie', userCredentials)
 					.expect(200)
 					.expect(res => {
-						console.log(res.body);
 						expect(res.body.notifications[0].isRead).toBe(true);
 						expect(res.body.notifications[1].isRead).toBe(true);
 					})
