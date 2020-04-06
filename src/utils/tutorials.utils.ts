@@ -37,7 +37,7 @@ export const validateTutorial = (tutorial: any): Joi.ValidationResult => {
 					.required()
 					.custom((value, helpers) => {
 						if (!mongoose.Types.ObjectId.isValid(value)) {
-							return helpers.error('any.invalid');
+							return helpers.error('any.Invalid');
 						}
 
 						return value;
@@ -46,7 +46,7 @@ export const validateTutorial = (tutorial: any): Joi.ValidationResult => {
 			.max(5)
 			.messages({
 				'any.required': 'At least one tag is required',
-				'any.invalid': 'Invalid Tag Id',
+				'any.Invalid': 'Invalid Tag Id',
 				'array.includesRequiredUnknowns': 'At least one tag is required',
 				'array.max': 'A tutorial can contain maximum of 5 tags',
 				'string.empty': 'Tutorial tag cannot be empty',
@@ -139,7 +139,7 @@ export const validateUpdate = (tutorial: any): Joi.ValidationResult => {
 					.required()
 					.custom((value, helpers) => {
 						if (!mongoose.Types.ObjectId.isValid(value)) {
-							return helpers.error('any.invalid');
+							return helpers.error('any.Invalid');
 						}
 
 						return value;
@@ -148,7 +148,7 @@ export const validateUpdate = (tutorial: any): Joi.ValidationResult => {
 			.max(5)
 			.messages({
 				'any.required': 'At least one tag is required',
-				'any.invalid': 'Invalid Tag Id',
+				'any.Invalid': 'Invalid Tag Id',
 				'array.includesRequiredUnknowns': 'At least one tag is required',
 				'array.max': 'A tutorial can contain maximum of 5 tags',
 				'string.empty': 'Tutorial tag cannot be empty',

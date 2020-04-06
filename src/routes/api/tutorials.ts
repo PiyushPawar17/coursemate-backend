@@ -5,7 +5,7 @@ const router = Router();
 import {
 	getAllTutorials,
 	getTutorial,
-	getTutorialByTag,
+	getTutorialsByTag,
 	getUnapprovedTutorials,
 	addTutorial,
 	addUpvote,
@@ -29,7 +29,7 @@ router
 	.get(getTutorial)
 	.delete(adminCheck, deleteTutorial);
 
-router.route('/tag/:tagId').get(getTutorialByTag);
+router.route('/tag/:tagId').get(getTutorialsByTag);
 
 router.route('/unapproved').get(adminCheck, getUnapprovedTutorials);
 

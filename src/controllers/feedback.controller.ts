@@ -19,7 +19,7 @@ export const getAllFeedbacks = (req: Request, res: Response) => {
 			res.json({ feedbacks });
 		})
 		.catch(error => {
-			res.json({ error });
+			res.status(500).json({ error, errorMessage: 'Unable to get feedbacks' });
 		});
 };
 
@@ -29,19 +29,27 @@ export const getFeedback = (req: Request, res: Response) => {
 	const { feedbackId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(feedbackId)) {
-		return res.status(400).json({ error: 'Inavlid Feedback Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Feedback Id' });
 	}
 
 	Feedback.findById(feedbackId)
 		.then(feedback => {
 			if (!feedback) {
-				res.status(404).json({ error: 'Feedback not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'Feedback not found'
+				});
 			} else {
 				res.json({ feedback });
 			}
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to get the feedback' });
+			}
 		});
 };
 
@@ -53,7 +61,7 @@ export const submitFeedback = (req: Request, res: Response) => {
 	const { value: newFeedback, error } = validateFeedback(req.body);
 
 	if (error) {
-		return res.status(400).json({ error: error.details[0].message });
+		return res.status(400).json({ error: true, errorMessage: error.details[0].message });
 	}
 
 	const user = req.user as IUser;
@@ -72,7 +80,7 @@ export const submitFeedback = (req: Request, res: Response) => {
 			res.status(201).json({ feedback: newFeedback });
 		})
 		.catch(error => {
-			res.json({ error });
+			res.status(500).json({ error, errorMessage: 'Unable to submit feedback' });
 		});
 };
 
@@ -89,7 +97,7 @@ export const readAllFeedbacks = (req: Request, res: Response) => {
 			res.json({ feedbacks });
 		})
 		.catch(error => {
-			res.json({ error });
+			res.status(500).json({ error, errorMessage: 'Unable to read add feedbacks' });
 		});
 };
 
@@ -99,19 +107,27 @@ export const readFeedback = (req: Request, res: Response) => {
 	const { feedbackId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(feedbackId)) {
-		return res.status(400).json({ error: 'Inavlid Feedback Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Feedback Id' });
 	}
 
 	Feedback.findByIdAndUpdate(feedbackId, { isRead: true }, { new: true })
 		.then(feedback => {
 			if (!feedback) {
-				res.status(404).json({ error: 'Feedback not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'Feedback not found'
+				});
 			} else {
 				res.json({ feedback });
 			}
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to read the feedback' });
+			}
 		});
 };
 
@@ -121,19 +137,27 @@ export const unreadFeedback = (req: Request, res: Response) => {
 	const { feedbackId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(feedbackId)) {
-		return res.status(400).json({ error: 'Inavlid Feedback Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Feedback Id' });
 	}
 
 	Feedback.findByIdAndUpdate(feedbackId, { isRead: false }, { new: true })
 		.then(feedback => {
 			if (!feedback) {
-				res.status(404).json({ error: 'Feedback not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'Feedback not found'
+				});
 			} else {
 				res.json({ feedback });
 			}
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to unread the feedback' });
+			}
 		});
 };
 
@@ -145,18 +169,26 @@ export const deleteFeedback = (req: Request, res: Response) => {
 	const { feedbackId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(feedbackId)) {
-		return res.status(400).json({ error: 'Inavlid Feedback Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Feedback Id' });
 	}
 
 	Feedback.findByIdAndDelete(feedbackId)
 		.then(deletedFeedback => {
 			if (!deletedFeedback) {
-				res.status(404).json({ error: 'Feedback not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'Feedback not found'
+				});
 			} else {
 				res.json({ feedback: deletedFeedback });
 			}
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to delete feedback' });
+			}
 		});
 };

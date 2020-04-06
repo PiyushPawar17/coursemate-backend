@@ -108,12 +108,11 @@ describe('Route /api/user', () => {
 					.expect(200)
 					.expect(res => {
 						expect(res.body.tutorials.length).toBe(users[1].submittedTutorials.length);
-						expect(res.body.tutorials[0]._id).toBe(
-							users[1].submittedTutorials[0].toHexString()
-						);
-						expect(res.body.tutorials[1]._id).toBe(
-							users[1].submittedTutorials[1].toHexString()
-						);
+						res.body.tutorials.forEach((tutorial: any, index: number) => {
+							expect(tutorial._id).toBe(
+								users[1].submittedTutorials[index].toHexString()
+							);
+						});
 					})
 					.end(done);
 			});
@@ -125,7 +124,9 @@ describe('Route /api/user', () => {
 					.get('/api/user/submitted-tutorials')
 					.expect(401)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -141,7 +142,9 @@ describe('Route /api/user', () => {
 					.expect(200)
 					.expect(res => {
 						expect(res.body.favorites.length).toBe(users[1].favorites.length);
-						expect(res.body.favorites[0]._id).toBe(users[1].favorites[0].toHexString());
+						res.body.favorites.forEach((favorite: any, index: number) => {
+							expect(favorite._id).toBe(users[1].favorites[index].toHexString());
+						});
 					})
 					.end(done);
 			});
@@ -153,7 +156,9 @@ describe('Route /api/user', () => {
 					.get('/api/user/favorites')
 					.expect(401)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -169,12 +174,11 @@ describe('Route /api/user', () => {
 					.expect(200)
 					.expect(res => {
 						expect(res.body.notifications.length).toBe(users[1].notifications.length);
-						expect(res.body.notifications[0]._id).toBe(
-							users[1].notifications[0]._id.toHexString()
-						);
-						expect(res.body.notifications[1]._id).toBe(
-							users[1].notifications[1]._id.toHexString()
-						);
+						res.body.notifications.forEach((notification: any, index: number) => {
+							expect(notification._id).toBe(
+								users[1].notifications[index]._id.toHexString()
+							);
+						});
 					})
 					.end(done);
 			});
@@ -186,7 +190,9 @@ describe('Route /api/user', () => {
 					.get('/api/user/notifications')
 					.expect(401)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -202,7 +208,9 @@ describe('Route /api/user', () => {
 					.expect(200)
 					.expect(res => {
 						expect(res.body.tracks.length).toBe(users[1].tracks.length);
-						expect(res.body.tracks[0]._id).toBe(users[1].tracks[0]._id.toHexString());
+						res.body.tracks.forEach((track: any, index: number) => {
+							expect(track._id).toBe(users[1].tracks[index]._id.toHexString());
+						});
 					})
 					.end(done);
 			});
@@ -214,7 +222,9 @@ describe('Route /api/user', () => {
 					.get('/api/user/tracks')
 					.expect(401)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -241,7 +251,9 @@ describe('Route /api/user', () => {
 					.get('/api/user/all-users')
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -254,7 +266,7 @@ describe('Route /api/user', () => {
 					.set('Cookie', userCredentials)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('SuperAdmin access required');
+						expect(res.body.errorMessage).toBe('SuperAdmin access required');
 					})
 					.end(done);
 			});
@@ -265,7 +277,7 @@ describe('Route /api/user', () => {
 					.set('Cookie', adminCredentials)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('SuperAdmin access required');
+						expect(res.body.errorMessage).toBe('SuperAdmin access required');
 					})
 					.end(done);
 			});
@@ -300,6 +312,17 @@ describe('Route /api/user', () => {
 					})
 					.end(done);
 			});
+
+			it('should throw an error for invalid mongo id', done => {
+				request(app)
+					.post('/api/user/favorites/123')
+					.set('Cookie', userCredentials)
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid Tutorial Id');
+					})
+					.end(done);
+			});
 		});
 
 		describe('Auth validation tests', () => {
@@ -308,7 +331,9 @@ describe('Route /api/user', () => {
 					.post(`/api/user/favorites/${tutorials[2]._id}`)
 					.expect(401)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -343,6 +368,17 @@ describe('Route /api/user', () => {
 					})
 					.end(done);
 			});
+
+			it('should throw an error for invalid mongo id', done => {
+				request(app)
+					.post('/api/user/tracks/123')
+					.set('Cookie', userCredentials)
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid Track Id');
+					})
+					.end(done);
+			});
 		});
 
 		describe('Auth validation tests', () => {
@@ -351,7 +387,9 @@ describe('Route /api/user', () => {
 					.post(`/api/user/tracks/${tracks[2]._id}`)
 					.expect(401)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -389,7 +427,7 @@ describe('Route /api/user', () => {
 					.send(updatedUser)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('User name is required');
+						expect(res.body.errorMessage).toBe('User name is required');
 					})
 					.end(done);
 			});
@@ -401,7 +439,9 @@ describe('Route /api/user', () => {
 					.put('/api/user/update')
 					.expect(401)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -416,8 +456,9 @@ describe('Route /api/user', () => {
 					.set('Cookie', userCredentials)
 					.expect(200)
 					.expect(res => {
-						expect(res.body.notifications[0].isRead).toBe(true);
-						expect(res.body.notifications[1].isRead).toBe(true);
+						res.body.notifications.forEach((notification: any) => {
+							expect(notification.isRead).toBe(true);
+						});
 					})
 					.end(done);
 			});
@@ -429,7 +470,9 @@ describe('Route /api/user', () => {
 					.patch('/api/user/notifications')
 					.expect(401)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -445,9 +488,30 @@ describe('Route /api/user', () => {
 					.expect(200)
 					.expect(res => {
 						expect(res.body.notifications[0].isRead).toBe(true);
-						expect(res.body.notifications[1].isRead).toBe(
-							users[1].notifications[1].isRead
-						);
+					})
+					.end(done);
+			});
+		});
+
+		describe('Validation tests', () => {
+			it('should throw an error for invalid mongo id', done => {
+				request(app)
+					.patch('/api/user/notifications/123')
+					.set('Cookie', userCredentials)
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid Notification Id');
+					})
+					.end(done);
+			});
+
+			it('should throw an error if notification is not found', done => {
+				request(app)
+					.patch(`/api/user/notifications/${new mongoose.Types.ObjectId()}`)
+					.set('Cookie', userCredentials)
+					.expect(404)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Notification not found');
 					})
 					.end(done);
 			});
@@ -459,7 +523,9 @@ describe('Route /api/user', () => {
 					.patch(`/api/user/notifications/${users[1].notifications[0]._id}`)
 					.expect(401)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -494,7 +560,7 @@ describe('Route /api/user', () => {
 					.set('Cookie', userCredentials)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Track progress required');
+						expect(res.body.errorMessage).toBe('Track progress required');
 					})
 					.end(done);
 			});
@@ -510,7 +576,39 @@ describe('Route /api/user', () => {
 					.send(updatedTrack)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Track progress cannot be negative');
+						expect(res.body.errorMessage).toBe('Track progress cannot be negative');
+					})
+					.end(done);
+			});
+
+			it('should throw an error for invalid mongo id', done => {
+				const updatedTrack = {
+					trackProgressIndex: 1
+				};
+
+				request(app)
+					.patch('/api/user/tracks/123')
+					.set('Cookie', userCredentials)
+					.send(updatedTrack)
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid Track Id');
+					})
+					.end(done);
+			});
+
+			it('should throw an error if track is not found', done => {
+				const updatedTrack = {
+					trackProgressIndex: 1
+				};
+
+				request(app)
+					.patch(`/api/user/tracks/${new mongoose.Types.ObjectId()}`)
+					.set('Cookie', userCredentials)
+					.send(updatedTrack)
+					.expect(404)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Track not found');
 					})
 					.end(done);
 			});
@@ -522,7 +620,9 @@ describe('Route /api/user', () => {
 					.patch(`/api/user/tracks/${tracks[0]._id}`)
 					.expect(401)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -565,6 +665,24 @@ describe('Route /api/user', () => {
 			});
 		});
 
+		describe('Validation tests', () => {
+			it('should throw an error for invalid mongo id', done => {
+				const user = {
+					userId: '123'
+				};
+
+				request(app)
+					.patch('/api/user/admin-status')
+					.set('Cookie', superAdminCredentials)
+					.send(user)
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid User Id');
+					})
+					.end(done);
+			});
+		});
+
 		describe('Auth validation tests', () => {
 			const user = {
 				userId: users[0]._id
@@ -576,7 +694,9 @@ describe('Route /api/user', () => {
 					.send(user)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -594,7 +714,7 @@ describe('Route /api/user', () => {
 					.send(user)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('SuperAdmin access required');
+						expect(res.body.errorMessage).toBe('SuperAdmin access required');
 					})
 					.end(done);
 			});
@@ -610,7 +730,7 @@ describe('Route /api/user', () => {
 					.send(user)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('SuperAdmin access required');
+						expect(res.body.errorMessage).toBe('SuperAdmin access required');
 					})
 					.end(done);
 			});
@@ -653,6 +773,24 @@ describe('Route /api/user', () => {
 			});
 		});
 
+		describe('Validation tests', () => {
+			it('should throw an error for invalid mongo id', done => {
+				const user = {
+					userId: '123'
+				};
+
+				request(app)
+					.patch('/api/user/super-admin-status')
+					.set('Cookie', superAdminCredentials)
+					.send(user)
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid User Id');
+					})
+					.end(done);
+			});
+		});
+
 		describe('Auth validation tests', () => {
 			it('should not allow unauthenticated user to change super admin status', done => {
 				const user = {
@@ -664,7 +802,9 @@ describe('Route /api/user', () => {
 					.send(user)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -682,7 +822,7 @@ describe('Route /api/user', () => {
 					.send(user)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('SuperAdmin access required');
+						expect(res.body.errorMessage).toBe('SuperAdmin access required');
 					})
 					.end(done);
 			});
@@ -698,7 +838,7 @@ describe('Route /api/user', () => {
 					.send(user)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('SuperAdmin access required');
+						expect(res.body.errorMessage).toBe('SuperAdmin access required');
 					})
 					.end(done);
 			});
@@ -713,7 +853,26 @@ describe('Route /api/user', () => {
 					.set('Cookie', userCredentials)
 					.expect(200)
 					.expect(res => {
+						const isTutorialRemoved = res.body.favorites.every(
+							(favorite: any) =>
+								favorite.toHexString() !== tutorials[2]._id.toHexString()
+						);
+
 						expect(res.body.favorites.length).toBe(users[1].favorites.length - 1);
+						expect(isTutorialRemoved).toBe(true);
+					})
+					.end(done);
+			});
+		});
+
+		describe('Validation tests', () => {
+			it('should throw an error for invalid mongo id', done => {
+				request(app)
+					.delete('/api/user/favorites/123')
+					.set('Cookie', userCredentials)
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid Tutorial Id');
 					})
 					.end(done);
 			});
@@ -725,7 +884,9 @@ describe('Route /api/user', () => {
 					.delete(`/api/user/favorites/${tutorials[2]._id}`)
 					.expect(401)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -740,7 +901,26 @@ describe('Route /api/user', () => {
 					.set('Cookie', userCredentials)
 					.expect(200)
 					.expect(res => {
+						const isTrackRemoved = res.body.tracks.every(
+							(track: any) =>
+								track.track.toHexString() !== tracks[0]._id.toHexString()
+						);
+
 						expect(res.body.tracks.length).toBe(users[1].tracks.length - 1);
+						expect(isTrackRemoved).toBe(true);
+					})
+					.end(done);
+			});
+		});
+
+		describe('Validation tests', () => {
+			it('should throw an error for invalid mongo id', done => {
+				request(app)
+					.delete('/api/user/tracks/123')
+					.set('Cookie', userCredentials)
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid Track Id');
 					})
 					.end(done);
 			});
@@ -752,7 +932,9 @@ describe('Route /api/user', () => {
 					.delete(`/api/user/tracks/${tracks[0]._id}`)
 					.expect(401)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -773,13 +955,28 @@ describe('Route /api/user', () => {
 			});
 		});
 
+		describe('Validation tests', () => {
+			it('should throw an error for invalid mongo id', done => {
+				request(app)
+					.delete('/api/user/delete/123')
+					.set('Cookie', superAdminCredentials)
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid User Id');
+					})
+					.end(done);
+			});
+		});
+
 		describe('Auth validation tests', () => {
 			it('should not allow unauthenticated to delete user', done => {
 				request(app)
 					.delete(`/api/user/delete/${users[1]._id}`)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -792,7 +989,7 @@ describe('Route /api/user', () => {
 					.set('Cookie', userCredentials)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('SuperAdmin access required');
+						expect(res.body.errorMessage).toBe('SuperAdmin access required');
 					})
 					.end(done);
 			});
@@ -803,7 +1000,7 @@ describe('Route /api/user', () => {
 					.set('Cookie', adminCredentials)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('SuperAdmin access required');
+						expect(res.body.errorMessage).toBe('SuperAdmin access required');
 					})
 					.end(done);
 			});

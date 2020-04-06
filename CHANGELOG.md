@@ -1,3 +1,17 @@
+## 0.6.0 (April 7, 2020)
+
+### Added
+
+-   Tests for slugify utils
+-   Mock data to test utils
+-   Tests for `MongoId` and `404` validation
+
+### Updated
+
+-   Updated handling of error responses using `Promise.reject()`
+-   Updated error responses to include full error message
+-   Updated tests that asserted from mock data arrays
+
 ## 0.5.0 (April 6, 2020)
 
 ### Added

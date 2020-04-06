@@ -90,10 +90,14 @@ describe('Route /api/tracks', () => {
 					.get('/api/tracks')
 					.expect(200)
 					.expect(res => {
+						const sortedTracks = [...tracks].sort((track1, track2) =>
+							track1.name > track2.name ? 1 : -1
+						);
+
 						expect(res.body.tracks.length).toBe(tracks.length);
-						expect(res.body.tracks[0].name).toBe('Back-end Developer Roadmap');
-						expect(res.body.tracks[1].name).toBe('Front-end Developer Roadmap');
-						expect(res.body.tracks[2].name).toBe('Full stack Developer Roadmap');
+						sortedTracks.forEach((track, index) => {
+							expect(res.body.tracks[index].name).toBe(track.name);
+						});
 					})
 					.end(done);
 			});
@@ -117,6 +121,28 @@ describe('Route /api/tracks', () => {
 					.end(done);
 			});
 		});
+
+		describe('Validation tests', () => {
+			it('should throw an error for invalid mongo id', done => {
+				request(app)
+					.get('/api/tracks/track/123')
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid Track Id');
+					})
+					.end(done);
+			});
+
+			it('should throw an error if track is not found', done => {
+				request(app)
+					.get(`/api/tracks/track/${new mongoose.Types.ObjectId()}`)
+					.expect(404)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Track not found');
+					})
+					.end(done);
+			});
+		});
 	});
 
 	describe('GET /api/tracks/unapproved', () => {
@@ -127,9 +153,12 @@ describe('Route /api/tracks', () => {
 					.set('Cookie', adminCredentials)
 					.expect(200)
 					.expect(res => {
-						expect(res.body.tracks.length).toBe(tracks.length - 1);
-						expect(res.body.tracks[0].isApproved).toBe(false);
-						expect(res.body.tracks[1].isApproved).toBe(false);
+						const unapprovedTracks = tracks.filter(track => !track.isApproved);
+
+						expect(res.body.tracks.length).toBe(unapprovedTracks.length);
+						res.body.tracks.forEach((track: any) => {
+							expect(track.isApproved).toBe(false);
+						});
 					})
 					.end(done);
 			});
@@ -141,7 +170,9 @@ describe('Route /api/tracks', () => {
 					.get('/api/tracks/unapproved')
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -154,7 +185,7 @@ describe('Route /api/tracks', () => {
 					.set('Cookie', userCredentials)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('Admin access required');
+						expect(res.body.errorMessage).toBe('Admin access required');
 					})
 					.end(done);
 			});
@@ -199,7 +230,7 @@ describe('Route /api/tracks', () => {
 					.send(tracks[0])
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Track already exist');
+						expect(res.body.errorMessage).toBe('Track already exist');
 					})
 					.end(done);
 			});
@@ -216,7 +247,7 @@ describe('Route /api/tracks', () => {
 					.send(newTrack)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Track name is required');
+						expect(res.body.errorMessage).toBe('Track name is required');
 					})
 					.end(done);
 			});
@@ -233,7 +264,7 @@ describe('Route /api/tracks', () => {
 					.send(newTrack)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Track description is required');
+						expect(res.body.errorMessage).toBe('Track description is required');
 					})
 					.end(done);
 			});
@@ -250,7 +281,7 @@ describe('Route /api/tracks', () => {
 					.send(newTrack)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('At least one tutorial is required');
+						expect(res.body.errorMessage).toBe('At least one tutorial is required');
 					})
 					.end(done);
 			});
@@ -267,7 +298,7 @@ describe('Route /api/tracks', () => {
 					.send(newTrack)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Tutorial Id cannot be empty');
+						expect(res.body.errorMessage).toBe('Tutorial Id cannot be empty');
 					})
 					.end(done);
 			});
@@ -280,7 +311,9 @@ describe('Route /api/tracks', () => {
 					.send(tracks[0])
 					.expect(401)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -327,7 +360,7 @@ describe('Route /api/tracks', () => {
 					.send(updatedTrack)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Track name is required');
+						expect(res.body.errorMessage).toBe('Track name is required');
 					})
 					.end(done);
 			});
@@ -344,7 +377,7 @@ describe('Route /api/tracks', () => {
 					.send(updatedTrack)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Track description is required');
+						expect(res.body.errorMessage).toBe('Track description is required');
 					})
 					.end(done);
 			});
@@ -361,7 +394,7 @@ describe('Route /api/tracks', () => {
 					.send(updatedTrack)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('At least one tutorial is required');
+						expect(res.body.errorMessage).toBe('At least one tutorial is required');
 					})
 					.end(done);
 			});
@@ -378,7 +411,29 @@ describe('Route /api/tracks', () => {
 					.send(updatedTrack)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Tutorial Id cannot be empty');
+						expect(res.body.errorMessage).toBe('Tutorial Id cannot be empty');
+					})
+					.end(done);
+			});
+
+			it('should throw an error for invalid mongo id', done => {
+				request(app)
+					.put('/api/tracks/update/123')
+					.set('Cookie', adminCredentials)
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid Track Id');
+					})
+					.end(done);
+			});
+
+			it('should throw an error if track is not found', done => {
+				request(app)
+					.put(`/api/tracks/update/${new mongoose.Types.ObjectId()}`)
+					.set('Cookie', adminCredentials)
+					.expect(404)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Track not found');
 					})
 					.end(done);
 			});
@@ -390,7 +445,9 @@ describe('Route /api/tracks', () => {
 					.put(`/api/tracks/update/${tracks[2]._id}`)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -403,7 +460,7 @@ describe('Route /api/tracks', () => {
 					.set('Cookie', userCredentials)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('Admin access required');
+						expect(res.body.errorMessage).toBe('Admin access required');
 					})
 					.end(done);
 			});
@@ -429,6 +486,40 @@ describe('Route /api/tracks', () => {
 			});
 		});
 
+		describe('Validation tests', () => {
+			it('should throw an error for invalid mongo id', done => {
+				const track = {
+					trackId: '123'
+				};
+
+				request(app)
+					.patch('/api/tracks/approved-status')
+					.set('Cookie', adminCredentials)
+					.send(track)
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid Track Id');
+					})
+					.end(done);
+			});
+
+			it('should throw an error if track is not found', done => {
+				const track = {
+					trackId: new mongoose.Types.ObjectId()
+				};
+
+				request(app)
+					.patch('/api/tracks/approved-status')
+					.set('Cookie', adminCredentials)
+					.send(track)
+					.expect(404)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Track not found');
+					})
+					.end(done);
+			});
+		});
+
 		describe('Auth validation tests', () => {
 			it('should not allow unauthenticated user to change the approved status of the track', done => {
 				const track = {
@@ -440,7 +531,9 @@ describe('Route /api/tracks', () => {
 					.send(track)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -458,7 +551,7 @@ describe('Route /api/tracks', () => {
 					.send(track)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('Admin access required');
+						expect(res.body.errorMessage).toBe('Admin access required');
 					})
 					.end(done);
 			});
@@ -479,13 +572,39 @@ describe('Route /api/tracks', () => {
 			});
 		});
 
+		describe('Validation tests', () => {
+			it('should throw an error for invalid mongo id', done => {
+				request(app)
+					.delete('/api/tracks/track/123')
+					.set('Cookie', adminCredentials)
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid Track Id');
+					})
+					.end(done);
+			});
+
+			it('should throw an error if track is not found', done => {
+				request(app)
+					.delete(`/api/tracks/track/${new mongoose.Types.ObjectId()}`)
+					.set('Cookie', adminCredentials)
+					.expect(404)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Track not found');
+					})
+					.end(done);
+			});
+		});
+
 		describe('Auth validation tests', () => {
 			it('should not allow unauthenticated user to delete the track', done => {
 				request(app)
 					.delete(`/api/tracks/track/${tracks[2]._id}`)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -498,7 +617,7 @@ describe('Route /api/tracks', () => {
 					.set('Cookie', userCredentials)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('Admin access required');
+						expect(res.body.errorMessage).toBe('Admin access required');
 					})
 					.end(done);
 			});
@@ -526,9 +645,31 @@ describe('Route /api/tracks', () => {
 					.set('Cookie', userCredentials)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe(
+						expect(res.body.errorMessage).toBe(
 							'Track is approved and cannot be deleted. Contact Admin.'
 						);
+					})
+					.end(done);
+			});
+
+			it('should throw an error for invalid mongo id', done => {
+				request(app)
+					.delete('/api/tracks/cancel/123')
+					.set('Cookie', userCredentials)
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid Track Id');
+					})
+					.end(done);
+			});
+
+			it('should throw an error if track is not found', done => {
+				request(app)
+					.delete(`/api/tracks/cancel/${new mongoose.Types.ObjectId()}`)
+					.set('Cookie', userCredentials)
+					.expect(404)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Track not found');
 					})
 					.end(done);
 			});
@@ -540,7 +681,9 @@ describe('Route /api/tracks', () => {
 					.delete(`/api/tracks/cancel/${tracks[1]._id}`)
 					.expect(401)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -553,7 +696,7 @@ describe('Route /api/tracks', () => {
 					.set('Cookie', userCredentials)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('Only track owner can cancel request');
+						expect(res.body.errorMessage).toBe('Only track owner can cancel request');
 					})
 					.end(done);
 			});

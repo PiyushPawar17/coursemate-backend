@@ -77,10 +77,14 @@ describe('Route /api/tags', () => {
 					.get('/api/tags')
 					.expect(200)
 					.expect(res => {
+						const sortedTags = [...tags].sort((tag1, tag2) =>
+							tag1.name > tag2.name ? 1 : -1
+						);
+
 						expect(res.body.tags.length).toBe(tags.length);
-						expect(res.body.tags[0].name).toBe('C++');
-						expect(res.body.tags[1].name).toBe('Express');
-						expect(res.body.tags[2].name).toBe('Machine Learning');
+						sortedTags.forEach((tag, index) => {
+							expect(res.body.tags[index].name).toBe(tag.name);
+						});
 					})
 					.end(done);
 			});
@@ -95,9 +99,13 @@ describe('Route /api/tags', () => {
 					.set('Cookie', adminCredentials)
 					.expect(200)
 					.expect(res => {
-						expect(res.body.tags.length).toBe(tags.length - 1);
-						expect(res.body.tags[0].isApproved).toBe(false);
-						expect(res.body.tags[1].isApproved).toBe(false);
+						const unapprovedTags = tags.filter(tag => !tag.isApproved);
+
+						expect(res.body.tags.length).toBe(unapprovedTags.length);
+						res.body.tags.forEach((tag: any) => {
+							expect(tag.isApproved).toBe(false);
+							expect(tag.isApproved).toBe(false);
+						});
 					})
 					.end(done);
 			});
@@ -109,7 +117,9 @@ describe('Route /api/tags', () => {
 					.get('/api/tags/unapproved')
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -122,7 +132,7 @@ describe('Route /api/tags', () => {
 					.set('Cookie', userCredentials)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('Admin access required');
+						expect(res.body.errorMessage).toBe('Admin access required');
 					})
 					.end(done);
 			});
@@ -163,7 +173,7 @@ describe('Route /api/tags', () => {
 					.send(tag)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Tag already exist');
+						expect(res.body.errorMessage).toBe('Tag already exist');
 					})
 					.end(done);
 			});
@@ -179,7 +189,7 @@ describe('Route /api/tags', () => {
 					.send(tag)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Tag name is required');
+						expect(res.body.errorMessage).toBe('Tag name is required');
 					})
 					.end(done);
 			});
@@ -195,7 +205,9 @@ describe('Route /api/tags', () => {
 					.send(tag)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Tag should contain maximum 30 characters');
+						expect(res.body.errorMessage).toBe(
+							'Tag should contain maximum 30 characters'
+						);
 					})
 					.end(done);
 			});
@@ -231,7 +243,9 @@ describe('Route /api/tags', () => {
 					.send(tag)
 					.expect(401)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -273,7 +287,7 @@ describe('Route /api/tags', () => {
 					.send(tag)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Tag name is required');
+						expect(res.body.errorMessage).toBe('Tag name is required');
 					})
 					.end(done);
 			});
@@ -290,7 +304,9 @@ describe('Route /api/tags', () => {
 					.send(tag)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Tag should contain maximum 30 characters');
+						expect(res.body.errorMessage).toBe(
+							'Tag should contain maximum 30 characters'
+						);
 					})
 					.end(done);
 			});
@@ -314,6 +330,42 @@ describe('Route /api/tags', () => {
 					})
 					.end(done);
 			});
+
+			it('should throw an error for invalid mongo id', done => {
+				const tag = {
+					tagId: '123',
+					name: 'New Tag',
+					isApproved: true
+				};
+
+				request(app)
+					.put('/api/tags/update')
+					.set('Cookie', adminCredentials)
+					.send(tag)
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid Tag Id');
+					})
+					.end(done);
+			});
+
+			it('should throw an error if tag is not found', done => {
+				const tag = {
+					tagId: new mongoose.Types.ObjectId(),
+					name: 'New Tag',
+					isApproved: true
+				};
+
+				request(app)
+					.put('/api/tags/update')
+					.set('Cookie', adminCredentials)
+					.send(tag)
+					.expect(404)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Tag not found');
+					})
+					.end(done);
+			});
 		});
 
 		describe('Auth validation tests', () => {
@@ -328,7 +380,9 @@ describe('Route /api/tags', () => {
 					.send(tag)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -347,7 +401,7 @@ describe('Route /api/tags', () => {
 					.send(tag)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('Admin access required');
+						expect(res.body.errorMessage).toBe('Admin access required');
 					})
 					.end(done);
 			});
@@ -373,6 +427,40 @@ describe('Route /api/tags', () => {
 			});
 		});
 
+		describe('Validation tests', () => {
+			it('should throw an error for invalid mongo id', done => {
+				const tag = {
+					tagId: '123'
+				};
+
+				request(app)
+					.patch('/api/tags/approved-status')
+					.set('Cookie', adminCredentials)
+					.send(tag)
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid Tag Id');
+					})
+					.end(done);
+			});
+
+			it('should throw an error if tag is not found', done => {
+				const tag = {
+					tagId: new mongoose.Types.ObjectId()
+				};
+
+				request(app)
+					.patch('/api/tags/approved-status')
+					.set('Cookie', adminCredentials)
+					.send(tag)
+					.expect(404)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Tag not found');
+					})
+					.end(done);
+			});
+		});
+
 		describe('Auth validation tests', () => {
 			it('should not allow unauthenticated user to update the approved status of a tag', done => {
 				const tag = {
@@ -384,7 +472,9 @@ describe('Route /api/tags', () => {
 					.send(tag)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -402,7 +492,7 @@ describe('Route /api/tags', () => {
 					.send(tag)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('Admin access required');
+						expect(res.body.errorMessage).toBe('Admin access required');
 					})
 					.end(done);
 			});
@@ -423,13 +513,39 @@ describe('Route /api/tags', () => {
 			});
 		});
 
+		describe('Validation tests', () => {
+			it('should throw an error for invalid mongo id', done => {
+				request(app)
+					.delete('/api/tags/123')
+					.set('Cookie', adminCredentials)
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid Tag Id');
+					})
+					.end(done);
+			});
+
+			it('should throw an error if tag is not found', done => {
+				request(app)
+					.delete(`/api/tags/${new mongoose.Types.ObjectId()}`)
+					.set('Cookie', adminCredentials)
+					.expect(404)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Tag not found');
+					})
+					.end(done);
+			});
+		});
+
 		describe('Auth validation tests', () => {
 			it('should not allow unauthenticated user to delete a tag', done => {
 				request(app)
 					.delete(`/api/tags/${tags[0]._id}`)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -442,7 +558,7 @@ describe('Route /api/tags', () => {
 					.set('Cookie', userCredentials)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('Admin access required');
+						expect(res.body.errorMessage).toBe('Admin access required');
 					})
 					.end(done);
 			});

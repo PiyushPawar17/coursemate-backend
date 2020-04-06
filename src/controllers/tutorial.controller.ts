@@ -20,7 +20,7 @@ export const getAllTutorials = (req: Request, res: Response) => {
 			res.json({ tutorials });
 		})
 		.catch(error => {
-			res.json({ error });
+			res.status(500).json({ error, errorMessage: 'Unable to get tutorials' });
 		});
 };
 
@@ -30,30 +30,38 @@ export const getTutorial = (req: Request, res: Response) => {
 	const { tutorialId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(tutorialId)) {
-		return res.status(400).json({ error: 'Inavlid Tutorial Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Tutorial Id' });
 	}
 
 	Tutorial.findById(tutorialId)
 		.populate('tags', ['name', 'slug'])
 		.then(tutorial => {
 			if (!tutorial) {
-				res.status(404).json({ error: 'Tutorial not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'Tutorial not found'
+				});
 			} else {
 				res.json({ tutorial });
 			}
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to get the tutorial' });
+			}
 		});
 };
 
 // Route -> /api/tutorials/tag/:tagId
 // Access -> Public
-export const getTutorialByTag = (req: Request, res: Response) => {
+export const getTutorialsByTag = (req: Request, res: Response) => {
 	const { tagId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(tagId)) {
-		return res.status(400).json({ error: 'Inavlid Tag Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Tag Id' });
 	}
 
 	const id = new mongoose.Types.ObjectId(tagId);
@@ -65,7 +73,10 @@ export const getTutorialByTag = (req: Request, res: Response) => {
 			res.json({ tutorials });
 		})
 		.catch(error => {
-			res.json({ error });
+			res.status(500).json({
+				error,
+				errorMessage: 'Unable to get tutorials of the given tag'
+			});
 		});
 };
 
@@ -79,7 +90,7 @@ export const getUnapprovedTutorials = (req: Request, res: Response) => {
 			res.json({ tutorials: unapprovedTutorials });
 		})
 		.catch(error => {
-			res.json({ error });
+			res.status(500).json({ error, errorMessage: 'Unable to get unapproved tutorials' });
 		});
 };
 
@@ -91,7 +102,7 @@ export const addTutorial = (req: Request, res: Response) => {
 	const { value: newTutorial, error } = validateTutorial(req.body);
 
 	if (error) {
-		return res.status(400).json({ error: error.details[0].message });
+		return res.status(400).json({ error: true, errorMessage: error.details[0].message });
 	}
 
 	const user = req.user as IUser;
@@ -111,9 +122,9 @@ export const addTutorial = (req: Request, res: Response) => {
 		})
 		.catch(error => {
 			if (error.code === 11000) {
-				res.status(400).json({ error: 'Tutorial already exist' });
+				res.status(400).json({ error, errorMessage: 'Tutorial already exist' });
 			} else {
-				res.json({ error });
+				res.status(500).json({ error, errorMessage: 'Unable to add tutorial' });
 			}
 		});
 };
@@ -124,7 +135,7 @@ export const addUpvote = (req: Request, res: Response) => {
 	const { tutorialId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(tutorialId)) {
-		return res.status(400).json({ error: 'Inavlid Tutorial Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Tutorial Id' });
 	}
 
 	const user = req.user as IUser;
@@ -132,13 +143,21 @@ export const addUpvote = (req: Request, res: Response) => {
 	Tutorial.findByIdAndUpdate(tutorialId, { $addToSet: { upvotes: user._id } }, { new: true })
 		.then(updatedTutorial => {
 			if (!updatedTutorial) {
-				return res.status(404).json({ error: 'Tutorial not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'Tutorial not found'
+				});
 			}
 
 			res.json({ tutorial: updatedTutorial._id, upvotes: updatedTutorial.upvotes });
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to add upvote' });
+			}
 		});
 };
 
@@ -148,13 +167,13 @@ export const addComment = (req: Request, res: Response) => {
 	const { tutorialId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(tutorialId)) {
-		return res.status(400).json({ error: 'Inavlid Tutorial Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Tutorial Id' });
 	}
 
 	const { value, error } = validateComment(req.body);
 
 	if (error) {
-		return res.status(400).json({ error: error.details[0].message });
+		return res.status(400).json({ error: true, errorMessage: error.details[0].message });
 	}
 
 	const user = req.user as IUser;
@@ -167,13 +186,21 @@ export const addComment = (req: Request, res: Response) => {
 	Tutorial.findByIdAndUpdate(tutorialId, { $push: { comments: newComment } }, { new: true })
 		.then(updatedTutorial => {
 			if (!updatedTutorial) {
-				return res.status(404).json({ error: 'Tutorial not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'Tutorial not found'
+				});
+			} else {
+				res.json({ tutorial: updatedTutorial._id, comments: updatedTutorial.comments });
 			}
-
-			res.json({ tutorial: updatedTutorial._id, comments: updatedTutorial.comments });
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to add comment' });
+			}
 		});
 };
 
@@ -185,7 +212,7 @@ export const updateTutorial = (req: Request, res: Response) => {
 	const { tutorialId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(tutorialId)) {
-		return res.status(400).json({ error: 'Inavlid Tutorial Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Tutorial Id' });
 	}
 
 	const tutorial = {
@@ -195,13 +222,17 @@ export const updateTutorial = (req: Request, res: Response) => {
 	const { value: updatedTutorial, error } = validateUpdate(tutorial);
 
 	if (error) {
-		return res.status(400).json({ error: error.details[0].message });
+		return res.status(400).json({ error: true, errorMessage: error.details[0].message });
 	}
 
 	Tutorial.findById(tutorialId)
 		.then(tutorialToUpdate => {
 			if (!tutorialToUpdate) {
-				res.status(404).json({ error: 'Tutorial not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'Tutorial not found'
+				});
 			} else {
 				const { title, ...rest } = updatedTutorial;
 				// Check if title is updated
@@ -226,7 +257,11 @@ export const updateTutorial = (req: Request, res: Response) => {
 			res.json({ tutorial });
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to update tutorial' });
+			}
 		});
 };
 
@@ -238,13 +273,17 @@ export const changeApprovedStatus = (req: Request, res: Response) => {
 	const { tutorialId } = req.body;
 
 	if (!mongoose.Types.ObjectId.isValid(tutorialId)) {
-		return res.status(400).json({ error: 'Inavlid Tutorial Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Tutorial Id' });
 	}
 
 	Tutorial.findById(tutorialId)
 		.then(tutorial => {
 			if (!tutorial) {
-				res.status(404).json({ error: 'Tutorial not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'Tutorial not found'
+				});
 			} else {
 				return Tutorial.findByIdAndUpdate(
 					tutorialId,
@@ -257,7 +296,14 @@ export const changeApprovedStatus = (req: Request, res: Response) => {
 			res.json({ tutorial: updatedTutorial });
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({
+					error,
+					errorMessage: 'Unable to change approved status of the tutorial'
+				});
+			}
 		});
 };
 
@@ -269,19 +315,27 @@ export const deleteTutorial = (req: Request, res: Response) => {
 	const { tutorialId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(tutorialId)) {
-		return res.status(400).json({ error: 'Inavlid Tutorial Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Tutorial Id' });
 	}
 
 	Tutorial.findByIdAndDelete(tutorialId)
 		.then(deletedTutorial => {
 			if (!deletedTutorial) {
-				res.status(404).json({ error: 'Tutorial not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'Tutorial not found'
+				});
 			} else {
 				res.json({ tutorial: deletedTutorial });
 			}
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to delete tutorial' });
+			}
 		});
 };
 
@@ -291,7 +345,7 @@ export const removeUpvote = (req: Request, res: Response) => {
 	const { tutorialId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(tutorialId)) {
-		return res.status(400).json({ error: 'Inavlid Tutorial Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Tutorial Id' });
 	}
 
 	const user = req.user as IUser;
@@ -299,13 +353,21 @@ export const removeUpvote = (req: Request, res: Response) => {
 	Tutorial.findByIdAndUpdate(tutorialId, { $pull: { upvotes: user._id } }, { new: true })
 		.then(updatedTutorial => {
 			if (!updatedTutorial) {
-				return res.status(404).json({ error: 'Tutorial not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'Tutorial not found'
+				});
+			} else {
+				res.json({ tutorial: updatedTutorial._id, upvotes: updatedTutorial.upvotes });
 			}
-
-			res.json({ tutorial: updatedTutorial._id, upvotes: updatedTutorial.upvotes });
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to remove upvote' });
+			}
 		});
 };
 
@@ -315,11 +377,11 @@ export const removeComment = (req: Request, res: Response) => {
 	const { tutorialId, commentId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(tutorialId)) {
-		return res.status(400).json({ error: 'Inavlid Tutorial Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Tutorial Id' });
 	}
 
 	if (!mongoose.Types.ObjectId.isValid(commentId)) {
-		return res.status(400).json({ error: 'Inavlid Comment Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Comment Id' });
 	}
 
 	const user = req.user as IUser;
@@ -327,7 +389,11 @@ export const removeComment = (req: Request, res: Response) => {
 	Tutorial.findById(tutorialId)
 		.then(tutorial => {
 			if (!tutorial) {
-				res.status(404).json({ error: 'Tutorial not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'Tutorial not found'
+				});
 			} else {
 				if (tutorial.comments) {
 					const comment = tutorial.comments.filter(
@@ -335,9 +401,17 @@ export const removeComment = (req: Request, res: Response) => {
 					)[0];
 
 					if (!comment) {
-						res.status(404).json({ error: 'Comment not found' });
+						return Promise.reject({
+							customError: true,
+							errorCode: 404,
+							errorMessage: 'Comment not found'
+						});
 					} else if (comment.userId.toHexString() !== user._id.toHexString()) {
-						res.status(403).json({ error: 'Only comments by you can be deleted' });
+						return Promise.reject({
+							customError: true,
+							errorCode: 403,
+							errorMessage: 'Only comments by you can be deleted'
+						});
 					} else {
 						return Tutorial.findByIdAndUpdate(
 							tutorialId,
@@ -346,17 +420,31 @@ export const removeComment = (req: Request, res: Response) => {
 						);
 					}
 				} else {
-					res.json({ error: 'Comment not found' });
+					return Promise.reject({
+						customError: true,
+						errorCode: 404,
+						errorMessage: 'Comment not found'
+					});
 				}
 			}
 		})
 		.then(updatedTutorial => {
-			if (updatedTutorial) {
+			if (!updatedTutorial) {
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'Tutorial not found'
+				});
+			} else {
 				res.json({ tutorial: updatedTutorial._id, comments: updatedTutorial.comments });
 			}
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to remove comment' });
+			}
 		});
 };
 
@@ -366,7 +454,7 @@ export const cancelRequest = (req: Request, res: Response) => {
 	const { tutorialId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(tutorialId)) {
-		return res.status(400).json({ error: 'Inavlid Tutorial Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Tutorial Id' });
 	}
 
 	const user = req.user as IUser;
@@ -374,13 +462,23 @@ export const cancelRequest = (req: Request, res: Response) => {
 	Tutorial.findById(tutorialId)
 		.then(tutorial => {
 			if (!tutorial) {
-				res.status(404).json({ error: 'Tutorial not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'Tutorial not found'
+				});
 			} else {
 				if (tutorial.submittedBy.userId.toHexString() !== user._id.toHexString()) {
-					res.status(403).json({ error: 'Only tutorial owner can cancel request' });
+					return Promise.reject({
+						customError: true,
+						errorCode: 403,
+						errorMessage: 'Only tutorial owner can cancel request'
+					});
 				} else if (tutorial.isApproved) {
-					res.status(403).json({
-						error: 'Tutorial is approved and cannot be deleted. Contact Admin.'
+					return Promise.reject({
+						customError: true,
+						errorCode: 403,
+						errorMessage: 'Tutorial is approved and cannot be deleted. Contact Admin.'
 					});
 				} else {
 					return Tutorial.findByIdAndDelete(tutorialId);
@@ -388,11 +486,21 @@ export const cancelRequest = (req: Request, res: Response) => {
 			}
 		})
 		.then(deletedTutorial => {
-			if (deletedTutorial) {
+			if (!deletedTutorial) {
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'Tutorial not found'
+				});
+			} else {
 				res.json({ tutorial: deletedTutorial });
 			}
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to cancel the request' });
+			}
 		});
 };

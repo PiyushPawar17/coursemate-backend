@@ -260,3 +260,27 @@ export const feedbacks = [
 		}
 	}
 ];
+
+// Utils data
+export const stringsToSlugify = {
+	tags: [
+		{ tag: 'React', slug: 'react' },
+		{ tag: 'Machine Learning', slug: 'machine-learning' },
+		{ tag: 'C#', slug: 'c-sharp' },
+		{ tag: 'C++', slug: 'c-plus-plus' },
+		{ tag: '.NET', slug: 'dot-net' },
+		{ tag: 'ASP.NET', slug: 'asp-dot-net' }
+	],
+	tutorials: [
+		{ tutorial: 'Node.js Tutorials', slug: 'nodejs-tutorials' },
+		{ tutorial: 'React and Redux: Complete guide', slug: 'react-and-redux-complete-guide' },
+		{ tutorial: 'C# for beginners', slug: 'c-sharp-for-beginners' },
+		{ tutorial: 'C/C++ for beginners', slug: 'c-c-plus-plus-for-beginners' },
+		{ tutorial: 'Python noob_to_pro!', slug: 'python-noob-to-pro' }
+	],
+	tracks: [
+		{ track: 'Game development with C#', slug: 'game-development-with-c-sharp' },
+		{ track: 'Learn Unreal Engine using C++', slug: 'learn-unreal-engine-using-c-plus-plus' },
+		{ track: 'UI/UX development', slug: 'ui-ux-development' }
+	]
+};

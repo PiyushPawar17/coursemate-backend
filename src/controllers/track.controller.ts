@@ -18,7 +18,9 @@ export const getAllTracks = (req: Request, res: Response) => {
 		.then(tracks => {
 			res.json({ tracks });
 		})
-		.catch(error => res.json({ error }));
+		.catch(error => {
+			res.status(500).json({ error, errorMessage: 'Unable to get the tracks' });
+		});
 };
 
 // Route -> /api/tracks/track/:trackId
@@ -27,7 +29,7 @@ export const getTrack = (req: Request, res: Response) => {
 	const { trackId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(trackId)) {
-		return res.status(400).json({ error: 'Inavlid Track ID' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Track Id' });
 	}
 
 	Track.findById(trackId)
@@ -35,13 +37,21 @@ export const getTrack = (req: Request, res: Response) => {
 		.populate({ path: 'tutorials', populate: { path: 'tags', select: 'name slug' } })
 		.then(track => {
 			if (!track) {
-				res.status(404).json({ error: 'Track not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'Track not found'
+				});
 			} else {
 				res.json({ track });
 			}
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to get the track' });
+			}
 		});
 };
 
@@ -54,7 +64,10 @@ export const getUnapprovedTracks = (req: Request, res: Response) => {
 			res.json({ tracks: unapprovedTracks });
 		})
 		.catch(error => {
-			res.json({ error });
+			res.status(500).json({
+				error,
+				errorMessage: 'Unable to change approved status of the track'
+			});
 		});
 };
 
@@ -66,7 +79,7 @@ export const addTrack = (req: Request, res: Response) => {
 	const { value: newTrack, error } = validateTrack(req.body);
 
 	if (error) {
-		return res.status(400).json({ error: error.details[0].message });
+		return res.status(400).json({ error: true, errorMessage: error.details[0].message });
 	}
 
 	const user = req.user as IUser;
@@ -86,9 +99,9 @@ export const addTrack = (req: Request, res: Response) => {
 		})
 		.catch(error => {
 			if (error.code === 11000) {
-				res.status(400).json({ error: 'Track already exist' });
+				res.status(400).json({ error, errorMessage: 'Track already exist' });
 			} else {
-				res.json({ error });
+				res.status(500).json({ error, errorMessage: 'Unable to add track' });
 			}
 		});
 };
@@ -101,19 +114,23 @@ export const updateTrack = (req: Request, res: Response) => {
 	const { trackId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(trackId)) {
-		return res.status(400).json({ error: 'Inavlid Track Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Track Id' });
 	}
 
 	const { value: updatedTrack, error } = validateUpdate(req.body);
 
 	if (error) {
-		return res.status(400).json({ error: error.details[0].message });
+		return res.status(400).json({ error: true, errorMessage: error.details[0].message });
 	}
 
 	Track.findById(trackId)
 		.then(trackToUpdate => {
 			if (!trackToUpdate) {
-				res.status(404).json({ error: 'Track not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'Track not found'
+				});
 			} else {
 				const { name, ...rest } = updatedTrack;
 				// Check if name is updated
@@ -144,7 +161,11 @@ export const updateTrack = (req: Request, res: Response) => {
 			res.json({ track });
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to update track' });
+			}
 		});
 };
 
@@ -156,13 +177,17 @@ export const changeApprovedStatus = (req: Request, res: Response) => {
 	const { trackId } = req.body;
 
 	if (!mongoose.Types.ObjectId.isValid(trackId)) {
-		return res.status(400).json({ error: 'Inavlid Track Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Track Id' });
 	}
 
 	Track.findById(trackId)
 		.then(track => {
 			if (!track) {
-				res.status(404).json({ error: 'Track not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'Track not found'
+				});
 			} else {
 				return Track.findByIdAndUpdate(
 					trackId,
@@ -175,7 +200,14 @@ export const changeApprovedStatus = (req: Request, res: Response) => {
 			res.json({ track: updatedTrack });
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({
+					error,
+					errorMessage: 'Unable to change approved status of the track'
+				});
+			}
 		});
 };
 
@@ -187,19 +219,27 @@ export const deleteTrack = (req: Request, res: Response) => {
 	const { trackId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(trackId)) {
-		return res.status(400).json({ error: 'Inavlid Track Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Track Id' });
 	}
 
 	Track.findByIdAndDelete(trackId)
 		.then(deletedTrack => {
 			if (!deletedTrack) {
-				res.status(404).json({ error: 'Track not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'Track not found'
+				});
 			} else {
 				res.json({ track: deletedTrack });
 			}
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to delete track' });
+			}
 		});
 };
 
@@ -209,7 +249,7 @@ export const cancelRequest = (req: Request, res: Response) => {
 	const { trackId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(trackId)) {
-		return res.status(400).json({ error: 'Inavlid Track Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Track Id' });
 	}
 
 	const user = req.user as IUser;
@@ -217,13 +257,23 @@ export const cancelRequest = (req: Request, res: Response) => {
 	Track.findById(trackId)
 		.then(track => {
 			if (!track) {
-				res.status(404).json({ error: 'Track not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'Track not found'
+				});
 			} else {
 				if (track.submittedBy.userId.toHexString() !== user._id.toHexString()) {
-					res.status(403).json({ error: 'Only track owner can cancel request' });
+					return Promise.reject({
+						customError: true,
+						errorCode: 403,
+						errorMessage: 'Only track owner can cancel request'
+					});
 				} else if (track.isApproved) {
-					res.status(403).json({
-						error: 'Track is approved and cannot be deleted. Contact Admin.'
+					return Promise.reject({
+						customError: true,
+						errorCode: 403,
+						errorMessage: 'Track is approved and cannot be deleted. Contact Admin.'
 					});
 				} else {
 					return Track.findByIdAndDelete(trackId);
@@ -231,11 +281,13 @@ export const cancelRequest = (req: Request, res: Response) => {
 			}
 		})
 		.then(deletedTrack => {
-			if (deletedTrack) {
-				res.json({ track: deletedTrack });
-			}
+			res.json({ track: deletedTrack });
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to cancel request' });
+			}
 		});
 };

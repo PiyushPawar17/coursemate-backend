@@ -19,7 +19,7 @@ export const getAllTags = (req: Request, res: Response) => {
 			res.json({ tags });
 		})
 		.catch(error => {
-			res.json({ error });
+			res.status(500).json({ error, errorMessage: 'Unable to get tags' });
 		});
 };
 
@@ -32,7 +32,7 @@ export const getUnapprovedTags = (req: Request, res: Response) => {
 			res.json({ tags: unapprovedTags });
 		})
 		.catch(error => {
-			res.json({ error });
+			res.status(500).json({ error, errorMessage: 'Unable to get unapproved tags' });
 		});
 };
 
@@ -44,7 +44,7 @@ export const addTag = (req: Request, res: Response) => {
 	const { value: newTag, error } = validateTag(req.body);
 
 	if (error) {
-		return res.status(400).json({ error: error.details[0].message });
+		return res.status(400).json({ error: true, errorMessage: error.details[0].message });
 	}
 
 	const user = req.user as IUser;
@@ -60,9 +60,9 @@ export const addTag = (req: Request, res: Response) => {
 		})
 		.catch(error => {
 			if (error.code === 11000) {
-				res.status(400).json({ error: 'Tag already exist' });
+				res.status(400).json({ error, errorMessage: 'Tag already exist' });
 			} else {
-				res.json({ error });
+				res.status(500).json({ error, errorMessage: 'Unable to add the tag' });
 			}
 		});
 };
@@ -75,19 +75,23 @@ export const updateTag = (req: Request, res: Response) => {
 	const { tagId } = req.body;
 
 	if (!mongoose.Types.ObjectId.isValid(tagId)) {
-		return res.status(400).json({ error: 'Inavlid Tag Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Tag Id' });
 	}
 
 	const { value: updatedTag, error } = validateTag(req.body);
 
 	if (error) {
-		return res.status(400).json({ error: error.details[0].message });
+		return res.status(400).json({ error: true, errorMessage: error.details[0].message });
 	}
 
 	Tag.findById(tagId)
 		.then(tag => {
 			if (!tag) {
-				res.status(404).json({ error: 'Tag not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'Tag not found'
+				});
 			} else {
 				tag.name = updatedTag.name;
 				return tag.save();
@@ -97,7 +101,11 @@ export const updateTag = (req: Request, res: Response) => {
 			res.json({ tag });
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to update the tag' });
+			}
 		});
 };
 
@@ -109,13 +117,17 @@ export const changeApprovedStatus = (req: Request, res: Response) => {
 	const { tagId } = req.body;
 
 	if (!mongoose.Types.ObjectId.isValid(tagId)) {
-		return res.status(400).json({ error: 'Inavlid Tag Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Tag Id' });
 	}
 
 	Tag.findById(tagId)
 		.then(tag => {
 			if (!tag) {
-				res.status(404).json({ error: 'Tag not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'Tag not found'
+				});
 			} else {
 				return Tag.findByIdAndUpdate(tagId, { isApproved: !tag.isApproved }, { new: true });
 			}
@@ -124,7 +136,14 @@ export const changeApprovedStatus = (req: Request, res: Response) => {
 			res.json({ tag: updatedTag });
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({
+					error,
+					errorMessage: 'Unable to change approved status of the tag'
+				});
+			}
 		});
 };
 
@@ -136,18 +155,26 @@ export const deleteTag = (req: Request, res: Response) => {
 	const { tagId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(tagId)) {
-		return res.status(400).json({ error: 'Inavlid Tag Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Tag Id' });
 	}
 
 	Tag.findByIdAndDelete(tagId)
 		.then(deletedTag => {
 			if (!deletedTag) {
-				res.status(404).json({ error: 'Tag not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'Tag not found'
+				});
 			} else {
 				res.json({ tag: deletedTag });
 			}
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to delete the tag' });
+			}
 		});
 };

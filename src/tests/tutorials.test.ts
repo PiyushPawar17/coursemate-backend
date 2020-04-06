@@ -86,14 +86,14 @@ describe('Route /api/tutorials', () => {
 					.get('/api/tutorials')
 					.expect(200)
 					.expect(res => {
+						const sortedTutorials = [...tutorials].sort((tutorial1, tutorial2) =>
+							tutorial1.title > tutorial2.title ? 1 : -1
+						);
+
 						expect(res.body.tutorials.length).toBe(tutorials.length);
-						expect(res.body.tutorials[0].title).toBe(
-							'Advanced React and Redux: 2018 Edition'
-						);
-						expect(res.body.tutorials[1].title).toBe(
-							'Four Ways To Style React Components'
-						);
-						expect(res.body.tutorials[2].title).toBe('Modern React with Redux');
+						sortedTutorials.forEach((tutorial, index) => {
+							expect(res.body.tutorials[index].title).toBe(tutorial.title);
+						});
 					})
 					.end(done);
 			});
@@ -125,6 +125,28 @@ describe('Route /api/tutorials', () => {
 					.end(done);
 			});
 		});
+
+		describe('Validation tests', () => {
+			it('should throw an error for invalid mongo id', done => {
+				request(app)
+					.get('/api/tutorials/tutorial/123')
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid Tutorial Id');
+					})
+					.end(done);
+			});
+
+			it('should throw an error if tutorial is not found', done => {
+				request(app)
+					.get(`/api/tutorials/tutorial/${new mongoose.Types.ObjectId()}`)
+					.expect(404)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Tutorial not found');
+					})
+					.end(done);
+			});
+		});
 	});
 
 	describe('GET /api/tutorials/tag/:tagId', () => {
@@ -134,11 +156,33 @@ describe('Route /api/tutorials', () => {
 					.get(`/api/tutorials/tag/${tags[0]._id}`)
 					.expect(200)
 					.expect(res => {
-						expect(res.body.tutorials.length).toBe(tutorials.length - 1);
-						expect(res.body.tutorials[0].title).toBe(
-							'Advanced React and Redux: 2018 Edition'
-						);
-						expect(res.body.tutorials[1].title).toBe('Modern React with Redux');
+						const tutorialsWithTag = [...tutorials]
+							.filter(tutorial => {
+								return tutorial.tags.some(
+									(tag: any) =>
+										tag._id.toHexString() === tags[0]._id.toHexString()
+								);
+							})
+							.sort((tutorial1, tutorial2) =>
+								tutorial1.title > tutorial2.title ? 1 : -1
+							);
+
+						expect(res.body.tutorials.length).toBe(tutorialsWithTag.length);
+						tutorialsWithTag.forEach((tutorial, index) => {
+							expect(res.body.tutorials[index].title).toBe(tutorial.title);
+						});
+					})
+					.end(done);
+			});
+		});
+
+		describe('Validation tests', () => {
+			it('should throw an error for invalid mongo id', done => {
+				request(app)
+					.get('/api/tutorials/tag/123')
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid Tag Id');
 					})
 					.end(done);
 			});
@@ -153,9 +197,14 @@ describe('Route /api/tutorials', () => {
 					.set('Cookie', adminCredentials)
 					.expect(200)
 					.expect(res => {
-						expect(res.body.tutorials.length).toBe(tutorials.length - 1);
-						expect(res.body.tutorials[0].isApproved).toBe(false);
-						expect(res.body.tutorials[1].isApproved).toBe(false);
+						const unapprovedTutorials = tutorials.filter(
+							tutorial => !tutorial.isApproved
+						);
+
+						expect(res.body.tutorials.length).toBe(unapprovedTutorials.length);
+						res.body.tutorials.forEach((tutorial: any) => {
+							expect(tutorial.isApproved).toBe(false);
+						});
 					})
 					.end(done);
 			});
@@ -167,7 +216,9 @@ describe('Route /api/tutorials', () => {
 					.get('/api/tutorials/unapproved')
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -180,7 +231,7 @@ describe('Route /api/tutorials', () => {
 					.set('Cookie', userCredentials)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('Admin access required');
+						expect(res.body.errorMessage).toBe('Admin access required');
 					})
 					.end(done);
 			});
@@ -240,7 +291,7 @@ describe('Route /api/tutorials', () => {
 					.send(tutorials[0])
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Tutorial already exist');
+						expect(res.body.errorMessage).toBe('Tutorial already exist');
 					})
 					.end(done);
 			});
@@ -257,7 +308,7 @@ describe('Route /api/tutorials', () => {
 					.send(newTutorial)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Tutorial title is required');
+						expect(res.body.errorMessage).toBe('Tutorial title is required');
 					})
 					.end(done);
 			});
@@ -274,12 +325,12 @@ describe('Route /api/tutorials', () => {
 					.send(newTutorial)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Tutorial link is required');
+						expect(res.body.errorMessage).toBe('Tutorial link is required');
 					})
 					.end(done);
 			});
 
-			it('should not allow user to add tutorial with invalid link', done => {
+			it('should not allow user to add tutorial with Invalid link', done => {
 				const newTutorial = {
 					...tutorial,
 					link: 'testlink'
@@ -291,7 +342,7 @@ describe('Route /api/tutorials', () => {
 					.send(newTutorial)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Invalid tutorial link');
+						expect(res.body.errorMessage).toBe('Invalid tutorial link');
 					})
 					.end(done);
 			});
@@ -308,7 +359,7 @@ describe('Route /api/tutorials', () => {
 					.send(newTutorial)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('At least one tag is required');
+						expect(res.body.errorMessage).toBe('At least one tag is required');
 					})
 					.end(done);
 			});
@@ -332,7 +383,9 @@ describe('Route /api/tutorials', () => {
 					.send(newTutorial)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('A tutorial can contain maximum of 5 tags');
+						expect(res.body.errorMessage).toBe(
+							'A tutorial can contain maximum of 5 tags'
+						);
 					})
 					.end(done);
 			});
@@ -349,7 +402,7 @@ describe('Route /api/tutorials', () => {
 					.send(newTutorial)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Tutorial tag cannot be empty');
+						expect(res.body.errorMessage).toBe('Tutorial tag cannot be empty');
 					})
 					.end(done);
 			});
@@ -366,7 +419,7 @@ describe('Route /api/tutorials', () => {
 					.send(newTutorial)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Educator name is required');
+						expect(res.body.errorMessage).toBe('Educator name is required');
 					})
 					.end(done);
 			});
@@ -383,7 +436,7 @@ describe('Route /api/tutorials', () => {
 					.send(newTutorial)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe(
+						expect(res.body.errorMessage).toBe(
 							'Tutorial medium should be one of "Video" or "Blog"'
 						);
 					})
@@ -402,7 +455,7 @@ describe('Route /api/tutorials', () => {
 					.send(newTutorial)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe(
+						expect(res.body.errorMessage).toBe(
 							'Tutorial type should be one of "Free" or "Paid"'
 						);
 					})
@@ -421,7 +474,7 @@ describe('Route /api/tutorials', () => {
 					.send(newTutorial)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe(
+						expect(res.body.errorMessage).toBe(
 							'Tutorial skill level should be one of "Beginner", "Intermediate" or "Advanced"'
 						);
 					})
@@ -436,7 +489,9 @@ describe('Route /api/tutorials', () => {
 					.send(tutorials[0])
 					.expect(401)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -472,6 +527,28 @@ describe('Route /api/tutorials', () => {
 					})
 					.end(done);
 			});
+
+			it('should throw an error for invalid mongo id', done => {
+				request(app)
+					.post('/api/tutorials/upvote/123')
+					.set('Cookie', userCredentials)
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid Tutorial Id');
+					})
+					.end(done);
+			});
+
+			it('should throw an error if tutorial is not found', done => {
+				request(app)
+					.post(`/api/tutorials/upvote/${new mongoose.Types.ObjectId()}`)
+					.set('Cookie', userCredentials)
+					.expect(404)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Tutorial not found');
+					})
+					.end(done);
+			});
 		});
 
 		describe('Auth validation tests', () => {
@@ -480,7 +557,9 @@ describe('Route /api/tutorials', () => {
 					.post(`/api/tutorials/upvote/${tutorials[1]._id}`)
 					.expect(401)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -519,7 +598,39 @@ describe('Route /api/tutorials', () => {
 					.send(comment)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Comment is required');
+						expect(res.body.errorMessage).toBe('Comment is required');
+					})
+					.end(done);
+			});
+
+			it('should throw an error for invalid mongo id', done => {
+				const comment = {
+					comment: 'Comment'
+				};
+
+				request(app)
+					.post('/api/tutorials/comment/123')
+					.set('Cookie', userCredentials)
+					.send(comment)
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid Tutorial Id');
+					})
+					.end(done);
+			});
+
+			it('should throw an error if tutorial is not found', done => {
+				const comment = {
+					comment: 'Comment'
+				};
+
+				request(app)
+					.post(`/api/tutorials/comment/${new mongoose.Types.ObjectId()}`)
+					.set('Cookie', userCredentials)
+					.send(comment)
+					.expect(404)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Tutorial not found');
 					})
 					.end(done);
 			});
@@ -531,7 +642,9 @@ describe('Route /api/tutorials', () => {
 					.post(`/api/tutorials/comment/${tutorials[1]._id}`)
 					.expect(401)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -584,7 +697,7 @@ describe('Route /api/tutorials', () => {
 					.send(newTutorial)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Tutorial title is required');
+						expect(res.body.errorMessage).toBe('Tutorial title is required');
 					})
 					.end(done);
 			});
@@ -601,12 +714,12 @@ describe('Route /api/tutorials', () => {
 					.send(newTutorial)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Tutorial link is required');
+						expect(res.body.errorMessage).toBe('Tutorial link is required');
 					})
 					.end(done);
 			});
 
-			it('should not allow admin to update tutorial with invalid link', done => {
+			it('should not allow admin to update tutorial with Invalid link', done => {
 				const newTutorial = {
 					...tutorial,
 					link: 'testlink'
@@ -618,7 +731,7 @@ describe('Route /api/tutorials', () => {
 					.send(newTutorial)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Invalid tutorial link');
+						expect(res.body.errorMessage).toBe('Invalid tutorial link');
 					})
 					.end(done);
 			});
@@ -635,7 +748,7 @@ describe('Route /api/tutorials', () => {
 					.send(newTutorial)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('At least one tag is required');
+						expect(res.body.errorMessage).toBe('At least one tag is required');
 					})
 					.end(done);
 			});
@@ -659,7 +772,9 @@ describe('Route /api/tutorials', () => {
 					.send(newTutorial)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('A tutorial can contain maximum of 5 tags');
+						expect(res.body.errorMessage).toBe(
+							'A tutorial can contain maximum of 5 tags'
+						);
 					})
 					.end(done);
 			});
@@ -676,7 +791,7 @@ describe('Route /api/tutorials', () => {
 					.send(newTutorial)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Tutorial tag cannot be empty');
+						expect(res.body.errorMessage).toBe('Tutorial tag cannot be empty');
 					})
 					.end(done);
 			});
@@ -693,7 +808,7 @@ describe('Route /api/tutorials', () => {
 					.send(newTutorial)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe('Educator name is required');
+						expect(res.body.errorMessage).toBe('Educator name is required');
 					})
 					.end(done);
 			});
@@ -710,7 +825,7 @@ describe('Route /api/tutorials', () => {
 					.send(newTutorial)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe(
+						expect(res.body.errorMessage).toBe(
 							'Tutorial medium should be one of "Video" or "Blog"'
 						);
 					})
@@ -729,7 +844,7 @@ describe('Route /api/tutorials', () => {
 					.send(newTutorial)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe(
+						expect(res.body.errorMessage).toBe(
 							'Tutorial type should be one of "Free" or "Paid"'
 						);
 					})
@@ -748,9 +863,33 @@ describe('Route /api/tutorials', () => {
 					.send(newTutorial)
 					.expect(400)
 					.expect(res => {
-						expect(res.body.error).toBe(
+						expect(res.body.errorMessage).toBe(
 							'Tutorial skill level should be one of "Beginner", "Intermediate" or "Advanced"'
 						);
+					})
+					.end(done);
+			});
+
+			it('should throw an error for invalid mongo id', done => {
+				request(app)
+					.put('/api/tutorials/update/123')
+					.set('Cookie', adminCredentials)
+					.send(tutorial)
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid Tutorial Id');
+					})
+					.end(done);
+			});
+
+			it('should throw an error if tutorial is not found', done => {
+				request(app)
+					.put(`/api/tutorials/update/${new mongoose.Types.ObjectId()}`)
+					.set('Cookie', adminCredentials)
+					.send(tutorial)
+					.expect(404)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Tutorial not found');
 					})
 					.end(done);
 			});
@@ -762,7 +901,9 @@ describe('Route /api/tutorials', () => {
 					.put(`/api/tutorials/update/${tutorials[2]._id}`)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -775,7 +916,7 @@ describe('Route /api/tutorials', () => {
 					.set('Cookie', userCredentials)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('Admin access required');
+						expect(res.body.errorMessage).toBe('Admin access required');
 					})
 					.end(done);
 			});
@@ -801,6 +942,40 @@ describe('Route /api/tutorials', () => {
 			});
 		});
 
+		describe('Validation tests', () => {
+			it('should throw an error for invalid mongo id', done => {
+				const tutorial = {
+					tutorialId: '123'
+				};
+
+				request(app)
+					.patch('/api/tutorials/approved-status')
+					.set('Cookie', adminCredentials)
+					.send(tutorial)
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid Tutorial Id');
+					})
+					.end(done);
+			});
+
+			it('should throw an error if tutorial is not found', done => {
+				const tutorial = {
+					tutorialId: new mongoose.Types.ObjectId()
+				};
+
+				request(app)
+					.patch('/api/tutorials/approved-status')
+					.set('Cookie', adminCredentials)
+					.send(tutorial)
+					.expect(404)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Tutorial not found');
+					})
+					.end(done);
+			});
+		});
+
 		describe('Auth validation tests', () => {
 			it('should not allow unauthenticated user to change the approved status of the tutorial', done => {
 				const tutorial = {
@@ -812,7 +987,9 @@ describe('Route /api/tutorials', () => {
 					.send(tutorial)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -830,7 +1007,7 @@ describe('Route /api/tutorials', () => {
 					.send(tutorial)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('Admin access required');
+						expect(res.body.errorMessage).toBe('Admin access required');
 					})
 					.end(done);
 			});
@@ -852,13 +1029,39 @@ describe('Route /api/tutorials', () => {
 			});
 		});
 
+		describe('Validation tests', () => {
+			it('should throw an error for invalid mongo id', done => {
+				request(app)
+					.delete('/api/tutorials/tutorial/123')
+					.set('Cookie', adminCredentials)
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid Tutorial Id');
+					})
+					.end(done);
+			});
+
+			it('should throw an error if tutorial is not found', done => {
+				request(app)
+					.delete(`/api/tutorials/tutorial/${new mongoose.Types.ObjectId()}`)
+					.set('Cookie', adminCredentials)
+					.expect(404)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Tutorial not found');
+					})
+					.end(done);
+			});
+		});
+
 		describe('Auth validation tests', () => {
 			it('should not allow unauthenticated user to delete the tutorial', done => {
 				request(app)
 					.delete(`/api/tutorials/tutorial/${tutorials[2]._id}`)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -871,7 +1074,7 @@ describe('Route /api/tutorials', () => {
 					.set('Cookie', userCredentials)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('Admin access required');
+						expect(res.body.errorMessage).toBe('Admin access required');
 					})
 					.end(done);
 			});
@@ -894,13 +1097,39 @@ describe('Route /api/tutorials', () => {
 			});
 		});
 
+		describe('Validation tests', () => {
+			it('should throw an error for invalid mongo id', done => {
+				request(app)
+					.delete('/api/tutorials/upvote/123')
+					.set('Cookie', userCredentials)
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid Tutorial Id');
+					})
+					.end(done);
+			});
+
+			it('should throw an error if tutorial is not found', done => {
+				request(app)
+					.delete(`/api/tutorials/upvote/${new mongoose.Types.ObjectId()}`)
+					.set('Cookie', userCredentials)
+					.expect(404)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Tutorial not found');
+					})
+					.end(done);
+			});
+		});
+
 		describe('Auth validation tests', () => {
 			it('should not allow unauthenticated user to remove upvote', done => {
 				request(app)
 					.delete(`/api/tutorials/upvote/${tutorials[1]._id}`)
 					.expect(401)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -924,6 +1153,60 @@ describe('Route /api/tutorials', () => {
 			});
 		});
 
+		describe('Validation tests', () => {
+			it('should throw an error for invalid mongo id for tutorial', done => {
+				request(app)
+					.delete(`/api/tutorials/comment/123/${tutorials[0].comments[1]._id}`)
+					.set('Cookie', userCredentials)
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid Tutorial Id');
+					})
+					.end(done);
+			});
+
+			it('should throw an error for invalid mongo id for comment', done => {
+				request(app)
+					.delete(`/api/tutorials/comment/${tutorials[0]._id}/123`)
+					.set('Cookie', userCredentials)
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid Comment Id');
+					})
+					.end(done);
+			});
+
+			it('should throw an error if tutorial is not found', done => {
+				request(app)
+					.delete(
+						`/api/tutorials/comment/${new mongoose.Types.ObjectId()}/${
+							tutorials[0].comments[1]._id
+						}`
+					)
+					.set('Cookie', userCredentials)
+					.expect(404)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Tutorial not found');
+					})
+					.end(done);
+			});
+
+			it('should throw an error if tutorial is not found', done => {
+				request(app)
+					.delete(
+						`/api/tutorials/comment/${
+							tutorials[0]._id
+						}/${new mongoose.Types.ObjectId()}`
+					)
+					.set('Cookie', userCredentials)
+					.expect(404)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Comment not found');
+					})
+					.end(done);
+			});
+		});
+
 		describe('Auth validation tests', () => {
 			it('should not allow unauthenticated user to delete a comment', done => {
 				request(app)
@@ -932,7 +1215,9 @@ describe('Route /api/tutorials', () => {
 					)
 					.expect(401)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -947,7 +1232,7 @@ describe('Route /api/tutorials', () => {
 					.set('Cookie', userCredentials)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('Only comments by you can be deleted');
+						expect(res.body.errorMessage).toBe('Only comments by you can be deleted');
 					})
 					.end(done);
 			});
@@ -975,9 +1260,31 @@ describe('Route /api/tutorials', () => {
 					.set('Cookie', userCredentials)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe(
+						expect(res.body.errorMessage).toBe(
 							'Tutorial is approved and cannot be deleted. Contact Admin.'
 						);
+					})
+					.end(done);
+			});
+
+			it('should throw an error for invalid mongo id', done => {
+				request(app)
+					.delete('/api/tutorials/cancel/123')
+					.set('Cookie', userCredentials)
+					.expect(400)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Invalid Tutorial Id');
+					})
+					.end(done);
+			});
+
+			it('should throw an error if tutorial is not found', done => {
+				request(app)
+					.delete(`/api/tutorials/cancel/${new mongoose.Types.ObjectId()}`)
+					.set('Cookie', userCredentials)
+					.expect(404)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe('Tutorial not found');
 					})
 					.end(done);
 			});
@@ -989,7 +1296,9 @@ describe('Route /api/tutorials', () => {
 					.delete(`/api/tutorials/cancel/${tutorials[1]._id}`)
 					.expect(401)
 					.expect(res => {
-						expect(res.body.error).toBe('You must be logged in to perform the action');
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
 					})
 					.end(done);
 			});
@@ -1002,7 +1311,9 @@ describe('Route /api/tutorials', () => {
 					.set('Cookie', userCredentials)
 					.expect(403)
 					.expect(res => {
-						expect(res.body.error).toBe('Only tutorial owner can cancel request');
+						expect(res.body.errorMessage).toBe(
+							'Only tutorial owner can cancel request'
+						);
 					})
 					.end(done);
 			});

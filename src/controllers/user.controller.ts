@@ -26,7 +26,7 @@ export const getSubmittedTutorials = (req: Request, res: Response) => {
 			if (error.name === 'MissingSchemaError') {
 				res.json({ user: user._id, tutorials: [] });
 			} else {
-				res.json({ error });
+				res.status(500).json({ error, errorMessage: 'Unable to get submitted tutorials' });
 			}
 		});
 };
@@ -41,7 +41,11 @@ export const getFavorites = (req: Request, res: Response) => {
 		.populate({ path: 'favorites', populate: { path: 'tags', select: 'name slug' } })
 		.then(user => {
 			if (!user) {
-				res.status(404).json({ error: 'User not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'User not found'
+				});
 			} else {
 				res.json({ favorites: user.favorites });
 			}
@@ -49,8 +53,10 @@ export const getFavorites = (req: Request, res: Response) => {
 		.catch(error => {
 			if (error.name === 'MissingSchemaError') {
 				res.json({ user: user._id, favorites: [] });
+			} else if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
 			} else {
-				res.json({ error });
+				res.status(500).json({ error, errorMessage: 'Unable to get favorites' });
 			}
 		});
 };
@@ -60,13 +66,25 @@ export const getFavorites = (req: Request, res: Response) => {
 export const getNotifications = (req: Request, res: Response) => {
 	const user = req.user as IUser;
 
-	User.findById(user._id).then(user => {
-		if (!user) {
-			res.status(404).json({ error: 'User not found' });
-		} else {
-			res.json({ user: user._id, notifications: user.notifications });
-		}
-	});
+	User.findById(user._id)
+		.then(user => {
+			if (!user) {
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'User not found'
+				});
+			} else {
+				res.json({ user: user._id, notifications: user.notifications });
+			}
+		})
+		.catch(error => {
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to get notifications' });
+			}
+		});
 };
 
 // Route -> /api/user/tracks
@@ -85,13 +103,21 @@ export const getTracks = (req: Request, res: Response) => {
 		})
 		.then(user => {
 			if (!user) {
-				res.status(404).json({ error: 'User not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'User not found'
+				});
 			} else {
 				res.json({ user: user._id, tracks: user.tracks });
 			}
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to get subscribed tracks' });
+			}
 		});
 };
 
@@ -103,7 +129,7 @@ export const getAllUsers = (req: Request, res: Response) => {
 			res.json({ users });
 		})
 		.catch(error => {
-			res.json({ error });
+			res.status(500).json({ error, errorMessage: 'Unable to get the users' });
 		});
 };
 
@@ -115,7 +141,7 @@ export const addToFavorites = (req: Request, res: Response) => {
 	const { tutorialId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(tutorialId)) {
-		return res.status(400).json({ error: 'Inavlid Tutorial Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Tutorial Id' });
 	}
 
 	const user = req.user as IUser;
@@ -125,13 +151,21 @@ export const addToFavorites = (req: Request, res: Response) => {
 		.populate({ path: 'favorites', populate: { path: 'tags', select: 'name slug' } })
 		.then(user => {
 			if (!user) {
-				res.status(404).json({ error: 'User not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'User not found'
+				});
 			} else {
 				res.json({ user: user._id, favorites: user.favorites });
 			}
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to add to favorites' });
+			}
 		});
 };
 
@@ -141,7 +175,7 @@ export const subscribeToTrack = (req: Request, res: Response) => {
 	const { trackId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(trackId)) {
-		return res.status(400).json({ error: 'Inavlid Track Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Track Id' });
 	}
 
 	const user = req.user as IUser;
@@ -149,7 +183,11 @@ export const subscribeToTrack = (req: Request, res: Response) => {
 	User.findById(user._id)
 		.then(user => {
 			if (!user) {
-				res.status(404).json({ error: 'User not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'User not found'
+				});
 			} else if (!user.tracks) {
 				// If not subscribed to any track
 				return User.findByIdAndUpdate(
@@ -185,7 +223,11 @@ export const subscribeToTrack = (req: Request, res: Response) => {
 					})
 					.then(user => {
 						if (!user) {
-							res.status(404).json({ error: 'User not found' });
+							return Promise.reject({
+								customError: true,
+								errorCode: 404,
+								errorMessage: 'User not found'
+							});
 						} else {
 							res.json({ user: user._id, tracks: user.tracks });
 						}
@@ -193,7 +235,11 @@ export const subscribeToTrack = (req: Request, res: Response) => {
 			}
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to subscribe to the track' });
+			}
 		});
 };
 
@@ -205,7 +251,7 @@ export const updateUser = (req: Request, res: Response) => {
 	const { value: updatedUser, error } = validateUser(req.body);
 
 	if (error) {
-		return res.status(400).json({ error: error.details[0].message });
+		return res.status(400).json({ error: true, errorMessage: error.details[0].message });
 	}
 
 	const user = req.user as IUser;
@@ -213,7 +259,11 @@ export const updateUser = (req: Request, res: Response) => {
 	User.findByIdAndUpdate(user._id, { name: updatedUser.name }, { new: true })
 		.then(currentUser => {
 			if (!currentUser) {
-				res.status(404).json({ error: 'User not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'User not found'
+				});
 			} else {
 				const user = _.pick(currentUser, [
 					'_id',
@@ -228,7 +278,11 @@ export const updateUser = (req: Request, res: Response) => {
 			}
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to update user info' });
+			}
 		});
 };
 
@@ -242,7 +296,11 @@ export const readAllNotifications = (req: Request, res: Response) => {
 	User.findById(user._id)
 		.then(user => {
 			if (!user) {
-				res.status(404).json({ error: 'User not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'User not found'
+				});
 			} else {
 				if (user.notifications) {
 					user.notifications.forEach(notification => {
@@ -254,12 +312,14 @@ export const readAllNotifications = (req: Request, res: Response) => {
 			}
 		})
 		.then(user => {
-			if (user) {
-				res.json({ user: user._id, notifications: user.notifications });
-			}
+			res.json({ user: user._id, notifications: user.notifications });
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to read all notiications' });
+			}
 		});
 };
 
@@ -269,7 +329,7 @@ export const readNotification = (req: Request, res: Response) => {
 	const { notificationId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(notificationId)) {
-		return res.status(400).json({ error: 'Inavlid Notification Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Notification Id' });
 	}
 
 	const user = req.user as IUser;
@@ -277,10 +337,18 @@ export const readNotification = (req: Request, res: Response) => {
 	User.findById(user._id)
 		.then(user => {
 			if (!user) {
-				res.status(404).json({ error: 'User not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'User not found'
+				});
 			} else {
 				if (!user.notifications) {
-					res.status(404).json({ error: 'Notification not found' });
+					return Promise.reject({
+						customError: true,
+						errorCode: 404,
+						errorMessage: 'Notification not found'
+					});
 				} else {
 					// Check of notification exist
 					const notification = user.notifications.filter(
@@ -288,7 +356,11 @@ export const readNotification = (req: Request, res: Response) => {
 					)[0];
 
 					if (!notification) {
-						res.status(404).json({ error: 'Notification not found' });
+						return Promise.reject({
+							customError: true,
+							errorCode: 404,
+							errorMessage: 'Notification not found'
+						});
 					} else {
 						notification.isRead = true;
 						return user.save();
@@ -297,12 +369,14 @@ export const readNotification = (req: Request, res: Response) => {
 			}
 		})
 		.then(user => {
-			if (user) {
-				res.json({ user: user._id, notifications: user.notifications });
-			}
+			res.json({ user: user._id, notifications: user.notifications });
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to read the notification' });
+			}
 		});
 };
 
@@ -312,13 +386,13 @@ export const updateTrackProgress = (req: Request, res: Response) => {
 	const { trackId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(trackId)) {
-		return res.status(400).json({ error: 'Inavlid Track Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Track Id' });
 	}
 
 	const { value: updatedTrackProgress, error } = validateTrackProgress(req.body);
 
 	if (error) {
-		return res.status(400).json({ error: error.details[0].message });
+		return res.status(400).json({ error: true, errorMessage: error.details[0].message });
 	}
 
 	const user = req.user as IUser;
@@ -326,16 +400,28 @@ export const updateTrackProgress = (req: Request, res: Response) => {
 	User.findById(user._id)
 		.then(user => {
 			if (!user) {
-				res.status(404).json({ error: 'User not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'User not found'
+				});
 			} else {
 				if (!user.tracks) {
-					res.status(404).json({ error: 'Track not found' });
+					return Promise.reject({
+						customError: true,
+						errorCode: 404,
+						errorMessage: 'Track not found'
+					});
 				} else {
 					const track = user.tracks.filter(t => t.track.toHexString() === trackId)[0];
 
 					// Check if subscribed to track
 					if (!track) {
-						res.status(404).json({ error: 'Track not found' });
+						return Promise.reject({
+							customError: true,
+							errorCode: 404,
+							errorMessage: 'Track not found'
+						});
 					} else {
 						track.trackProgressIndex += updatedTrackProgress.trackProgressIndex;
 
@@ -345,15 +431,15 @@ export const updateTrackProgress = (req: Request, res: Response) => {
 			}
 		})
 		.then(user => {
-			if (user) {
-				res.json({ user: user._id, trackId, tracks: user.tracks });
-			}
+			res.json({ user: user._id, trackId, tracks: user.tracks });
 		})
 		.catch(error => {
 			if (error.name === 'ValidationError') {
-				res.status(400).json({ error: 'Track progress cannot be negative' });
+				res.status(400).json({ error, errorMessage: 'Track progress cannot be negative' });
+			} else if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
 			} else {
-				res.json({ error });
+				res.status(500).json({ error, errorMessage: 'Unable to update track progress' });
 			}
 		});
 };
@@ -364,13 +450,17 @@ export const changeAdminStatus = (req: Request, res: Response) => {
 	const { userId } = req.body;
 
 	if (!mongoose.Types.ObjectId.isValid(userId)) {
-		return res.status(400).json({ error: 'Inavlid User Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid User Id' });
 	}
 
 	User.findById(userId)
 		.then(user => {
 			if (!user) {
-				res.status(404).json({ error: 'User not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'User not found'
+				});
 			} else {
 				// Make super admin false if admin is false
 				const updatedStatus = {
@@ -382,7 +472,13 @@ export const changeAdminStatus = (req: Request, res: Response) => {
 			}
 		})
 		.then(updatedUser => {
-			if (updatedUser) {
+			if (!updatedUser) {
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'User not found'
+				});
+			} else {
 				const user = _.pick(updatedUser, [
 					'_id',
 					'name',
@@ -396,7 +492,11 @@ export const changeAdminStatus = (req: Request, res: Response) => {
 			}
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to change admin status' });
+			}
 		});
 };
 
@@ -406,13 +506,17 @@ export const changeSuperAdminStatus = (req: Request, res: Response) => {
 	const { userId } = req.body;
 
 	if (!mongoose.Types.ObjectId.isValid(userId)) {
-		return res.status(400).json({ error: 'Inavlid User Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid User Id' });
 	}
 
 	User.findById(userId)
 		.then(user => {
 			if (!user) {
-				res.status(404).json({ error: 'User not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'User not found'
+				});
 			} else {
 				// Make admin true when when super admin is true
 				return User.findByIdAndUpdate(
@@ -423,7 +527,13 @@ export const changeSuperAdminStatus = (req: Request, res: Response) => {
 			}
 		})
 		.then(updatedUser => {
-			if (updatedUser) {
+			if (!updatedUser) {
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'User not found'
+				});
+			} else {
 				const user = _.pick(updatedUser, [
 					'_id',
 					'name',
@@ -437,7 +547,14 @@ export const changeSuperAdminStatus = (req: Request, res: Response) => {
 			}
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({
+					error,
+					errorMessage: 'Unable to change super admin status'
+				});
+			}
 		});
 };
 
@@ -449,7 +566,7 @@ export const removeFromFavorites = (req: Request, res: Response) => {
 	const { tutorialId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(tutorialId)) {
-		return res.status(400).json({ error: 'Inavlid Tutorial Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Tutorial Id' });
 	}
 
 	const user = req.user as IUser;
@@ -457,13 +574,21 @@ export const removeFromFavorites = (req: Request, res: Response) => {
 	User.findByIdAndUpdate(user._id, { $pull: { favorites: tutorialId } }, { new: true })
 		.then(user => {
 			if (!user) {
-				res.status(404).json({ error: 'User not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'User not found'
+				});
 			} else {
 				res.json({ user: user._id, favorites: user.favorites });
 			}
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to remove from favorites' });
+			}
 		});
 };
 
@@ -473,7 +598,7 @@ export const unsubscribeFromTrack = (req: Request, res: Response) => {
 	const { trackId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(trackId)) {
-		return res.status(400).json({ error: 'Inavlid Track Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid Track Id' });
 	}
 
 	const user = req.user as IUser;
@@ -489,13 +614,24 @@ export const unsubscribeFromTrack = (req: Request, res: Response) => {
 		})
 		.then(user => {
 			if (!user) {
-				res.status(404).json({ error: 'User not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'User not found'
+				});
 			} else {
 				res.json({ user: user._id, tracks: user.tracks });
 			}
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({
+					error,
+					errorMessage: 'Unable to unsubscribe from the track'
+				});
+			}
 		});
 };
 
@@ -505,18 +641,26 @@ export const deleteUser = (req: Request, res: Response) => {
 	const { userId } = req.params;
 
 	if (!mongoose.Types.ObjectId.isValid(userId)) {
-		return res.status(400).json({ error: 'Inavlid User Id' });
+		return res.status(400).json({ error: true, errorMessage: 'Invalid User Id' });
 	}
 
 	User.findByIdAndRemove(userId)
 		.then(user => {
 			if (!user) {
-				res.status(404).json({ error: 'User not found' });
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'User not found'
+				});
 			} else {
 				res.json({ user });
 			}
 		})
 		.catch(error => {
-			res.json({ error });
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({ error, errorMessage: 'Unable to delete user' });
+			}
 		});
 };

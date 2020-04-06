@@ -28,7 +28,7 @@ export const validateTrack = (track: any): Joi.ValidationResult => {
 					.required()
 					.custom((value, helpers) => {
 						if (!mongoose.Types.ObjectId.isValid(value)) {
-							return helpers.error('any.invalid');
+							return helpers.error('any.Invalid');
 						}
 
 						return value;
@@ -36,7 +36,7 @@ export const validateTrack = (track: any): Joi.ValidationResult => {
 			)
 			.messages({
 				'any.required': 'At least one tutorial is required',
-				'any.invalid': 'Invalid Tutorial Id',
+				'any.Invalid': 'Invalid Tutorial Id',
 				'array.includesRequiredUnknowns': 'At least one tutorial is required',
 				'string.empty': 'Tutorial Id cannot be empty',
 				'string.base': 'Tutorial Id must be a string'
@@ -70,7 +70,7 @@ export const validateUpdate = (track: any): Joi.ValidationResult => {
 					.required()
 					.custom((value, helpers) => {
 						if (!mongoose.Types.ObjectId.isValid(value)) {
-							return helpers.error('any.invalid');
+							return helpers.error('any.Invalid');
 						}
 
 						return value;
@@ -78,7 +78,7 @@ export const validateUpdate = (track: any): Joi.ValidationResult => {
 			)
 			.messages({
 				'any.required': 'At least one tutorial is required',
-				'any.invalid': 'Invalid Tutorial Id',
+				'any.Invalid': 'Invalid Tutorial Id',
 				'array.includesRequiredUnknowns': 'At least one tutorial is required',
 				'string.empty': 'Tutorial Id cannot be empty',
 				'string.base': 'Tutorial Id must be a string'
