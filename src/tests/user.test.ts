@@ -165,40 +165,6 @@ describe('Route /api/user', () => {
 		});
 	});
 
-	describe('GET /api/user/notifications', () => {
-		describe('Valid request tests', () => {
-			it('should allow authenticated user to get notifications', done => {
-				request(app)
-					.get('/api/user/notifications')
-					.set('Cookie', userCredentials)
-					.expect(200)
-					.expect(res => {
-						expect(res.body.notifications.length).toBe(users[1].notifications.length);
-						res.body.notifications.forEach((notification: any, index: number) => {
-							expect(notification._id).toBe(
-								users[1].notifications[index]._id.toHexString()
-							);
-						});
-					})
-					.end(done);
-			});
-		});
-
-		describe('Auth validation tests', () => {
-			it('should not allow unauthenticated user to get notifications', done => {
-				request(app)
-					.get('/api/user/notifications')
-					.expect(401)
-					.expect(res => {
-						expect(res.body.errorMessage).toBe(
-							'You must be logged in to perform the action'
-						);
-					})
-					.end(done);
-			});
-		});
-	});
-
 	describe('GET /api/user/tracks', () => {
 		describe('Valid request tests', () => {
 			it('should allow authenticated user to get tracks', done => {
@@ -437,90 +403,6 @@ describe('Route /api/user', () => {
 			it('should not allow unauthenticated user to update name', done => {
 				request(app)
 					.put('/api/user/update')
-					.expect(401)
-					.expect(res => {
-						expect(res.body.errorMessage).toBe(
-							'You must be logged in to perform the action'
-						);
-					})
-					.end(done);
-			});
-		});
-	});
-
-	describe('PATCH /api/user/notifications', () => {
-		describe('Valid request tests', () => {
-			it('should allow user to mark all notifications as read', done => {
-				request(app)
-					.patch('/api/user/notifications')
-					.set('Cookie', userCredentials)
-					.expect(200)
-					.expect(res => {
-						res.body.notifications.forEach((notification: any) => {
-							expect(notification.isRead).toBe(true);
-						});
-					})
-					.end(done);
-			});
-		});
-
-		describe('Auth validation tests', () => {
-			it('should not allow unauthenticated user to mark all notifications as read', done => {
-				request(app)
-					.patch('/api/user/notifications')
-					.expect(401)
-					.expect(res => {
-						expect(res.body.errorMessage).toBe(
-							'You must be logged in to perform the action'
-						);
-					})
-					.end(done);
-			});
-		});
-	});
-
-	describe('PATCH /api/user/notifications/:notificationId', () => {
-		describe('Valid request tests', () => {
-			it('should allow user to mark a notifications as read', done => {
-				request(app)
-					.patch(`/api/user/notifications/${users[1].notifications[0]._id}`)
-					.set('Cookie', userCredentials)
-					.expect(200)
-					.expect(res => {
-						expect(res.body.notifications[0].isRead).toBe(true);
-					})
-					.end(done);
-			});
-		});
-
-		describe('Validation tests', () => {
-			it('should throw an error for invalid mongo id', done => {
-				request(app)
-					.patch('/api/user/notifications/123')
-					.set('Cookie', userCredentials)
-					.expect(400)
-					.expect(res => {
-						expect(res.body.errorMessage).toBe('Invalid Notification Id');
-					})
-					.end(done);
-			});
-
-			it('should throw an error if notification is not found', done => {
-				request(app)
-					.patch(`/api/user/notifications/${new mongoose.Types.ObjectId()}`)
-					.set('Cookie', userCredentials)
-					.expect(404)
-					.expect(res => {
-						expect(res.body.errorMessage).toBe('Notification not found');
-					})
-					.end(done);
-			});
-		});
-
-		describe('Auth validation tests', () => {
-			it('should not allow unauthenticated user to mark a notifications as read', done => {
-				request(app)
-					.patch(`/api/user/notifications/${users[1].notifications[0]._id}`)
 					.expect(401)
 					.expect(res => {
 						expect(res.body.errorMessage).toBe(

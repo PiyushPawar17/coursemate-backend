@@ -3,14 +3,11 @@ import { Router } from 'express';
 import {
 	getSubmittedTutorials,
 	getFavorites,
-	getNotifications,
 	getTracks,
 	getAllUsers,
 	addToFavorites,
 	subscribeToTrack,
 	updateUser,
-	readAllNotifications,
-	readNotification,
 	updateTrackProgress,
 	changeAdminStatus,
 	changeSuperAdminStatus,
@@ -25,11 +22,6 @@ const router = Router();
 router.route('/submitted-tutorials').get(loginCheck, getSubmittedTutorials);
 
 router.route('/favorites').get(loginCheck, getFavorites);
-
-router
-	.route('/notifications')
-	.get(loginCheck, getNotifications)
-	.patch(loginCheck, readAllNotifications);
 
 router.route('/tracks').get(loginCheck, getTracks);
 
@@ -47,8 +39,6 @@ router
 	.delete(loginCheck, unsubscribeFromTrack);
 
 router.route('/update').put(loginCheck, updateUser);
-
-router.route('/notifications/:notificationId').patch(loginCheck, readNotification);
 
 router.route('/admin-status').patch(superAdminCheck, changeAdminStatus);
 

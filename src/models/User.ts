@@ -33,14 +33,6 @@ const UserSchema = new Schema(
 				ref: 'tutorial'
 			}
 		],
-		notifications: [
-			{
-				message: { type: String, required: true },
-				redirectLink: { type: String },
-				isRead: { type: Boolean, default: false },
-				time: { type: Date, default: Date.now() }
-			}
-		],
 		tracks: [
 			{
 				track: { type: mongoose.Types.ObjectId, ref: 'track' },

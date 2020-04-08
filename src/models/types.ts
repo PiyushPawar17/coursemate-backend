@@ -25,17 +25,6 @@ export interface IUser extends Document {
 	// The list will contain ObjectIds which will refer to Tutorial Schema
 	favorites?: [mongoose.Types.ObjectId];
 
-	// List of notifications that a user got
-	notifications?: [
-		{
-			_id: mongoose.Types.ObjectId; // Mongo Id
-			message: string; // Message to be displayed
-			redirectLink?: string; // Where to redirect on click
-			isRead: boolean; // Is notification read by the user
-			time: Date; // When the notification was sent
-		}
-	];
-
 	// The learning tracks that a user had subscribed to
 	tracks?: [
 		{

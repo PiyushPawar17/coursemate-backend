@@ -29,14 +29,6 @@ export const users = [
 		googleID: '11223344',
 		submittedTutorials: [tutorialOneId],
 		favorites: [tutorialOneId, tutorialTwoId],
-		notifications: [
-			{
-				_id: new mongoose.Types.ObjectId(),
-				message: 'Notification Message 1',
-				redirectLink: '/somelink',
-				isRead: false
-			}
-		],
 		tracks: [
 			{
 				_id: new mongoose.Types.ObjectId(),
@@ -60,20 +52,6 @@ export const users = [
 		googleID: '55667788',
 		submittedTutorials: [tutorialTwoId, tutorialThreeId],
 		favorites: [tutorialThreeId],
-		notifications: [
-			{
-				_id: new mongoose.Types.ObjectId(),
-				message: 'Notification Message 1',
-				redirectLink: '/somelink',
-				isRead: false
-			},
-			{
-				_id: new mongoose.Types.ObjectId(),
-				message: 'Notification Message 2',
-				redirectLink: '/somelink-2',
-				isRead: false
-			}
-		],
 		tracks: [
 			{
 				_id: new mongoose.Types.ObjectId(),
@@ -92,7 +70,6 @@ export const users = [
 		googleID: '12121212',
 		submittedTutorials: [],
 		favorites: [tutorialOneId, tutorialTwoId, tutorialThreeId],
-		notifications: [],
 		tracks: [],
 		isAdmin: true,
 		isSuperAdmin: true

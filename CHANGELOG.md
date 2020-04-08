@@ -1,3 +1,10 @@
+## 0.7.0 (April 8, 2020)
+
+### Removed
+
+-   Notifications from user
+-   Tests for notifications
+
 ## 0.6.0 (April 7, 2020)
 
 ### Added

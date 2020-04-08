@@ -61,32 +61,6 @@ export const getFavorites = (req: Request, res: Response) => {
 		});
 };
 
-// Route -> /api/user/notifications
-// Access -> Private
-export const getNotifications = (req: Request, res: Response) => {
-	const user = req.user as IUser;
-
-	User.findById(user._id)
-		.then(user => {
-			if (!user) {
-				return Promise.reject({
-					customError: true,
-					errorCode: 404,
-					errorMessage: 'User not found'
-				});
-			} else {
-				res.json({ user: user._id, notifications: user.notifications });
-			}
-		})
-		.catch(error => {
-			if (error.customError) {
-				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
-			} else {
-				res.status(500).json({ error, errorMessage: 'Unable to get notifications' });
-			}
-		});
-};
-
 // Route -> /api/user/tracks
 // Access -> Private
 export const getTracks = (req: Request, res: Response) => {
@@ -287,98 +261,6 @@ export const updateUser = (req: Request, res: Response) => {
 };
 
 // ----- PATCH REQUESTS -----
-
-// Route -> /api/user/notifications
-// Access -> Private
-export const readAllNotifications = (req: Request, res: Response) => {
-	const user = req.user as IUser;
-
-	User.findById(user._id)
-		.then(user => {
-			if (!user) {
-				return Promise.reject({
-					customError: true,
-					errorCode: 404,
-					errorMessage: 'User not found'
-				});
-			} else {
-				if (user.notifications) {
-					user.notifications.forEach(notification => {
-						notification.isRead = true;
-					});
-				}
-
-				return user.save();
-			}
-		})
-		.then(user => {
-			res.json({ user: user._id, notifications: user.notifications });
-		})
-		.catch(error => {
-			if (error.customError) {
-				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
-			} else {
-				res.status(500).json({ error, errorMessage: 'Unable to read all notiications' });
-			}
-		});
-};
-
-// Route -> /api/user/notifications/:notificationId
-// Access -> Private
-export const readNotification = (req: Request, res: Response) => {
-	const { notificationId } = req.params;
-
-	if (!mongoose.Types.ObjectId.isValid(notificationId)) {
-		return res.status(400).json({ error: true, errorMessage: 'Invalid Notification Id' });
-	}
-
-	const user = req.user as IUser;
-
-	User.findById(user._id)
-		.then(user => {
-			if (!user) {
-				return Promise.reject({
-					customError: true,
-					errorCode: 404,
-					errorMessage: 'User not found'
-				});
-			} else {
-				if (!user.notifications) {
-					return Promise.reject({
-						customError: true,
-						errorCode: 404,
-						errorMessage: 'Notification not found'
-					});
-				} else {
-					// Check of notification exist
-					const notification = user.notifications.filter(
-						n => n._id.toHexString() === notificationId
-					)[0];
-
-					if (!notification) {
-						return Promise.reject({
-							customError: true,
-							errorCode: 404,
-							errorMessage: 'Notification not found'
-						});
-					} else {
-						notification.isRead = true;
-						return user.save();
-					}
-				}
-			}
-		})
-		.then(user => {
-			res.json({ user: user._id, notifications: user.notifications });
-		})
-		.catch(error => {
-			if (error.customError) {
-				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
-			} else {
-				res.status(500).json({ error, errorMessage: 'Unable to read the notification' });
-			}
-		});
-};
 
 // Route -> /api/user/tracks/:trackId
 // Access -> Private
