@@ -1,3 +1,13 @@
+## 1.0.0 (April 9, 2020)
+
+### Added
+
+-   Documentation
+
+### Updated
+
+-   Contributing Guide
+
 ## 0.7.0 (April 8, 2020)
 
 ### Removed

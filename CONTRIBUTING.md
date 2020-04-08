@@ -17,17 +17,19 @@ cd coursemate-backend
 yarn
 ```
 
-## Development
-
--   Create `.env` file at the root of the project.
+-   Setup Environment Variables
+    -   Create `.env` file at the root of the project
+    -   Create `.env.test` file to setup environment variables for tests
 
 ```sh
-NODE_ENV=development
+NODE_ENV=
 MONGO_URI=
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 COOKIE_KEY=
 ```
+
+## Development
 
 -   Run development server
 
@@ -36,16 +38,6 @@ yarn dev
 ```
 
 ## Testing
-
--   Create `.env.test` file at the root of the project.
-
-```sh
-NODE_ENV=test
-MONGO_URI=
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-COOKIE_KEY=
-```
 
 -   Run tests
 
@@ -62,7 +54,5 @@ yarn test:watch
 ## Contributing
 
 -   Have a look at the open issues. Pick an unassigned issue or create one.
-
 -   Create a new branch and make changes.
-
 -   Send a Pull Request after making changes.

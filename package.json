@@ -1,6 +1,6 @@
 {
 	"name": "coursemate-backend",
-	"version": "0.7.0",
+	"version": "1.0.0",
 	"description": "Back-end for CourseMate",
 	"main": "server.ts",
 	"license": "MIT",

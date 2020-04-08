@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 mongoose.Promise = global.Promise;
 
 const connectDB = () => {
-	const { MONGO_URI = '' } = process.env;
+	const { MONGO_URI = '', NODE_ENV = '' } = process.env;
 
 	mongoose
 		.connect(MONGO_URI, {
@@ -13,7 +13,9 @@ const connectDB = () => {
 			useFindAndModify: false
 		})
 		.then(() => {
-			console.log('MongoDB Connected');
+			if (NODE_ENV !== 'test') {
+				console.log('MongoDB Connected');
+			}
 		})
 		.catch(err => console.log(err));
 };
