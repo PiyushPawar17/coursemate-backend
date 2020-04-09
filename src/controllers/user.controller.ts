@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
-import _ from 'lodash';
 
 import User from '../models/User';
 import Tutorial from '../models/Tutorial';
@@ -239,14 +238,15 @@ export const updateUser = (req: Request, res: Response) => {
 					errorMessage: 'User not found'
 				});
 			} else {
-				const user = _.pick(currentUser, [
-					'_id',
-					'name',
-					'email',
-					'displayPicture',
-					'isAdmin',
-					'isSuperAdmin'
-				]);
+				const { _id, name, email, displayPicture, isAdmin, isSuperAdmin } = currentUser;
+				const user = {
+					_id,
+					name,
+					email,
+					displayPicture,
+					isAdmin,
+					isSuperAdmin
+				};
 
 				res.json({ user });
 			}
@@ -361,14 +361,15 @@ export const changeAdminStatus = (req: Request, res: Response) => {
 					errorMessage: 'User not found'
 				});
 			} else {
-				const user = _.pick(updatedUser, [
-					'_id',
-					'name',
-					'email',
-					'displayPicture',
-					'isAdmin',
-					'isSuperAdmin'
-				]);
+				const { _id, name, email, displayPicture, isAdmin, isSuperAdmin } = updatedUser;
+				const user = {
+					_id,
+					name,
+					email,
+					displayPicture,
+					isAdmin,
+					isSuperAdmin
+				};
 
 				res.json({ user });
 			}
@@ -416,14 +417,15 @@ export const changeSuperAdminStatus = (req: Request, res: Response) => {
 					errorMessage: 'User not found'
 				});
 			} else {
-				const user = _.pick(updatedUser, [
-					'_id',
-					'name',
-					'email',
-					'displayPicture',
-					'isAdmin',
-					'isSuperAdmin'
-				]);
+				const { _id, name, email, displayPicture, isAdmin, isSuperAdmin } = updatedUser;
+				const user = {
+					_id,
+					name,
+					email,
+					displayPicture,
+					isAdmin,
+					isSuperAdmin
+				};
 
 				res.json({ user });
 			}

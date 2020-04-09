@@ -1,6 +1,5 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-import _ from 'lodash';
 
 import User from '../models/User';
 import { IUser } from '../models/types';
@@ -18,14 +17,15 @@ passport.deserializeUser((id, done) => {
 				return done(null, false);
 			}
 
-			const user = _.pick(currentUser, [
-				'_id',
-				'name',
-				'email',
-				'displayPicture',
-				'isAdmin',
-				'isSuperAdmin'
-			]);
+			const { _id, name, email, displayPicture, isAdmin, isSuperAdmin } = currentUser;
+			const user = {
+				_id,
+				name,
+				email,
+				displayPicture,
+				isAdmin,
+				isSuperAdmin
+			};
 			done(null, user);
 		})
 		.catch(error => {
