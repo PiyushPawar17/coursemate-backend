@@ -395,7 +395,7 @@ RequestBody:
     name: Name of the track (Optional)
     description: Short description about the track (Optional)
     tutorials: Array of MongoId of tutorials (Optional)
-Access: Private
+Access: Admin
 ```
 
 ##### PATCH Requests
