@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import Tutorial from '../models/Tutorial';
 import { IUser } from '../models/types';
 
-import { validateTutorial, validateComment, validateUpdate } from '../utils/tutorials.utils';
+import { validateTutorial, validateUpdate } from '../utils/tutorials.utils';
 
 // Routes for /api/tutorials
 
@@ -157,49 +157,6 @@ export const addUpvote = (req: Request, res: Response) => {
 				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
 			} else {
 				res.status(500).json({ error, errorMessage: 'Unable to add upvote' });
-			}
-		});
-};
-
-// Route -> /api/tutorials/comment/:tutorialId
-// Access -> Private
-export const addComment = (req: Request, res: Response) => {
-	const { tutorialId } = req.params;
-
-	if (!mongoose.Types.ObjectId.isValid(tutorialId)) {
-		return res.status(400).json({ error: true, errorMessage: 'Invalid Tutorial Id' });
-	}
-
-	const { value, error } = validateComment(req.body);
-
-	if (error) {
-		return res.status(400).json({ error: true, errorMessage: error.details[0].message });
-	}
-
-	const user = req.user as IUser;
-	const newComment = {
-		...value,
-		commentedBy: user.name,
-		userId: user._id
-	};
-
-	Tutorial.findByIdAndUpdate(tutorialId, { $push: { comments: newComment } }, { new: true })
-		.then(updatedTutorial => {
-			if (!updatedTutorial) {
-				return Promise.reject({
-					customError: true,
-					errorCode: 404,
-					errorMessage: 'Tutorial not found'
-				});
-			} else {
-				res.json({ tutorial: updatedTutorial._id, comments: updatedTutorial.comments });
-			}
-		})
-		.catch(error => {
-			if (error.customError) {
-				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
-			} else {
-				res.status(500).json({ error, errorMessage: 'Unable to add comment' });
 			}
 		});
 };
@@ -367,83 +324,6 @@ export const removeUpvote = (req: Request, res: Response) => {
 				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
 			} else {
 				res.status(500).json({ error, errorMessage: 'Unable to remove upvote' });
-			}
-		});
-};
-
-// Route -> /api/tutorials/comment/:tutorialId/:commentId
-// Access -> Private
-export const removeComment = (req: Request, res: Response) => {
-	const { tutorialId, commentId } = req.params;
-
-	if (!mongoose.Types.ObjectId.isValid(tutorialId)) {
-		return res.status(400).json({ error: true, errorMessage: 'Invalid Tutorial Id' });
-	}
-
-	if (!mongoose.Types.ObjectId.isValid(commentId)) {
-		return res.status(400).json({ error: true, errorMessage: 'Invalid Comment Id' });
-	}
-
-	const user = req.user as IUser;
-
-	Tutorial.findById(tutorialId)
-		.then(tutorial => {
-			if (!tutorial) {
-				return Promise.reject({
-					customError: true,
-					errorCode: 404,
-					errorMessage: 'Tutorial not found'
-				});
-			} else {
-				if (tutorial.comments) {
-					const comment = tutorial.comments.filter(
-						comment => comment._id.toHexString() === commentId
-					)[0];
-
-					if (!comment) {
-						return Promise.reject({
-							customError: true,
-							errorCode: 404,
-							errorMessage: 'Comment not found'
-						});
-					} else if (comment.userId.toHexString() !== user._id.toHexString()) {
-						return Promise.reject({
-							customError: true,
-							errorCode: 403,
-							errorMessage: 'Only comments by you can be deleted'
-						});
-					} else {
-						return Tutorial.findByIdAndUpdate(
-							tutorialId,
-							{ $pull: { comments: { _id: commentId } } },
-							{ new: true }
-						);
-					}
-				} else {
-					return Promise.reject({
-						customError: true,
-						errorCode: 404,
-						errorMessage: 'Comment not found'
-					});
-				}
-			}
-		})
-		.then(updatedTutorial => {
-			if (!updatedTutorial) {
-				return Promise.reject({
-					customError: true,
-					errorCode: 404,
-					errorMessage: 'Tutorial not found'
-				});
-			} else {
-				res.json({ tutorial: updatedTutorial._id, comments: updatedTutorial.comments });
-			}
-		})
-		.catch(error => {
-			if (error.customError) {
-				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
-			} else {
-				res.status(500).json({ error, errorMessage: 'Unable to remove comment' });
 			}
 		});
 };

@@ -1,3 +1,9 @@
+## 1.1.0 (July 1, 2020)
+
+### Removed
+
+-   Comments from tutorials
+
 ## 1.0.0 (April 9, 2020)
 
 ### Added

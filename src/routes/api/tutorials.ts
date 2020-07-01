@@ -9,12 +9,10 @@ import {
 	getUnapprovedTutorials,
 	addTutorial,
 	addUpvote,
-	addComment,
 	updateTutorial,
 	changeApprovedStatus,
 	deleteTutorial,
 	removeUpvote,
-	removeComment,
 	cancelRequest
 } from '../../controllers/tutorial.controller';
 import { loginCheck, adminCheck } from '../../utils/auth.utils';
@@ -37,10 +35,6 @@ router
 	.route('/upvote/:tutorialId')
 	.post(loginCheck, addUpvote)
 	.delete(loginCheck, removeUpvote);
-
-router.route('/comment/:tutorialId').post(loginCheck, addComment);
-
-router.route('/comment/:tutorialId/:commentId').delete(loginCheck, removeComment);
 
 router.route('/update/:tutorialId').put(adminCheck, updateTutorial);
 

@@ -47,13 +47,6 @@ const TutorialSchema = new Schema(
 			required: true
 		},
 		upvotes: [mongoose.Types.ObjectId],
-		comments: [
-			{
-				comment: { type: String, required: true },
-				commentedBy: { type: String, required: true },
-				userId: { type: mongoose.Types.ObjectId, ref: 'user' }
-			}
-		],
 		submittedBy: {
 			type: {
 				name: { type: String, required: true },

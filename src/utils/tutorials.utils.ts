@@ -91,22 +91,6 @@ export const validateTutorial = (tutorial: any): Joi.ValidationResult => {
 	return tutorialSchema.validate(tutorial);
 };
 
-export const validateComment = (comment: any): Joi.ValidationResult => {
-	const commentSchema = Joi.object({
-		comment: Joi.string()
-			.required()
-			.trim()
-			.min(1)
-			.messages({
-				'any.required': 'Comment is required',
-				'string.empty': 'Comment is required',
-				'string.base': 'Comment must be a string'
-			})
-	}).options({ stripUnknown: true });
-
-	return commentSchema.validate(comment);
-};
-
 export const validateUpdate = (tutorial: any): Joi.ValidationResult => {
 	const tutorialSchema = Joi.object({
 		title: Joi.string()

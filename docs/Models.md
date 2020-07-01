@@ -103,16 +103,6 @@ interface Tutorial {
 	// Will be list of ObjectIds of the users who upvoted
 	upvotes?: [ObjectId];
 
-	// List of comments on the tutorial
-	comments?: [
-		{
-			_id: ObjectId; // Mongo Id
-			comment: string; // Comment on the tutorial
-			commentedBy: string; // Name of the user
-			userId: ObjectId; // ObjectId of the user
-		}
-	];
-
 	// User that submitted the tutorial
 	submittedBy: {
 		name: string; // Name of the user

@@ -111,20 +111,6 @@ export const tutorials = [
 			name: users[0].name,
 			userId: users[0]._id
 		},
-		comments: [
-			{
-				_id: new mongoose.Types.ObjectId(),
-				comment: 'Comment 1',
-				commentedBy: users[0].name,
-				userId: userOneId
-			},
-			{
-				_id: new mongoose.Types.ObjectId(),
-				comment: 'Comment 2',
-				commentedBy: users[1].name,
-				userId: userTwoId
-			}
-		],
 		isApproved: false
 	},
 	{
@@ -141,14 +127,6 @@ export const tutorials = [
 			name: users[1].name,
 			userId: users[1]._id
 		},
-		comments: [
-			{
-				_id: new mongoose.Types.ObjectId(),
-				comment: 'Test Comment',
-				commentedBy: users[0].name,
-				userId: userOneId
-			}
-		],
 		isApproved: true
 	},
 	{
@@ -165,14 +143,6 @@ export const tutorials = [
 			name: users[1].name,
 			userId: users[1]._id
 		},
-		comments: [
-			{
-				_id: new mongoose.Types.ObjectId(),
-				comment: 'Test Comment',
-				commentedBy: users[1].name,
-				userId: userTwoId
-			}
-		],
 		isApproved: false
 	}
 ];

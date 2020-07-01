@@ -273,16 +273,6 @@ RequestParams:
 Access: Private
 ```
 
-```yml
-Route: /api/tutorials/comment/:tutorialId
-Description: Adds a comment to the tutorial
-RequestParams:
-    tutorialId: MongoId of the tutorial
-RequestBody:
-    comment: The comment to be added
-Access: Private
-```
-
 ##### PUT Requests
 
 ```yml
@@ -326,15 +316,6 @@ Route: /api/tutorials/upvote/:tutorialId
 Description: Removes a upvote from the tutorial
 RequestParams:
     tutorialId: MongoId of the tutorial
-Access: Private
-```
-
-```yml
-Route: /api/tutorials/comment/:tutorialId/:commentId
-Description: Deletes the comment from the tutorial
-RequestParams:
-    tutorialId: MongoId of the tutorial
-    commentId: MongoId of the comment
 Access: Private
 ```
 
