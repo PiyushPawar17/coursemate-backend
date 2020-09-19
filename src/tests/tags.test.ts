@@ -77,11 +77,13 @@ describe('Route /api/tags', () => {
 					.get('/api/tags')
 					.expect(200)
 					.expect(res => {
-						const sortedTags = [...tags].sort((tag1, tag2) =>
+						const approvedTags = tags.filter(tag => tag.isApproved);
+
+						const sortedTags = [...approvedTags].sort((tag1, tag2) =>
 							tag1.name > tag2.name ? 1 : -1
 						);
 
-						expect(res.body.tags.length).toBe(tags.length);
+						expect(res.body.tags.length).toBe(approvedTags.length);
 						sortedTags.forEach((tag, index) => {
 							expect(res.body.tags[index].name).toBe(tag.name);
 						});

@@ -99,6 +99,36 @@ describe('Route /api/user', () => {
 		superAdminCredentials = [`express:sess=${sessionString}`, `express:sess.sig=${sig}`];
 	});
 
+	describe('GET /api/user', () => {
+		describe('Valid request tests', () => {
+			it('should return the logged in user', done => {
+				request(app)
+					.get('/api/user')
+					.set('Cookie', userCredentials)
+					.expect(200)
+					.expect(res => {
+						expect(res.body.user.name).toBe(users[1].name);
+						expect(res.body.user.email).toBe(users[1].email);
+					})
+					.end(done);
+			});
+		});
+
+		describe('Auth validation tests', () => {
+			it('should not return any user when unauthenticated', done => {
+				request(app)
+					.get('/api/user')
+					.expect(401)
+					.expect(res => {
+						expect(res.body.errorMessage).toBe(
+							'You must be logged in to perform the action'
+						);
+					})
+					.end(done);
+			});
+		});
+	});
+
 	describe('GET /api/user/submitted-tutorials', () => {
 		describe('Valid request tests', () => {
 			it('should allow authenticated user to get submitted tutorial', done => {

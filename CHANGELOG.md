@@ -4,11 +4,13 @@
 
 -   Cors
 -   `/api/user` to get current user
+-   Tests for `/api/user`
 
 ### Updated
 
 -   Google Auth callback to point to localhost in development
 -   `/api/tags` to get only approved tags
+-   Tests for `/api/tags`
 
 ## 1.1.0 (July 1, 2020)
 
