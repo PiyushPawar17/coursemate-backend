@@ -51,6 +51,12 @@ Access: Private
 ##### GET Requests
 
 ```yml
+Route: /api/user
+Description: Returns current user info
+Access: Private
+```
+
+```yml
 Route: /api/user/submitted-tutorials
 Description: Returns list of tutorials submitted by the user
 Access: Private

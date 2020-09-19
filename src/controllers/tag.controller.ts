@@ -13,7 +13,7 @@ import { validateTag } from '../utils/tags.utils';
 // Route -> /api/tags
 // Access -> Public
 export const getAllTags = (req: Request, res: Response) => {
-	Tag.find({})
+	Tag.find({ isApproved: true })
 		.sort({ name: 1 })
 		.then(tags => {
 			res.json({ tags });

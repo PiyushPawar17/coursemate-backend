@@ -4,7 +4,7 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import User from '../models/User';
 import { IUser } from '../models/types';
 
-const { GOOGLE_CLIENT_ID = '', GOOGLE_CLIENT_SECRET = '' } = process.env;
+const { GOOGLE_CLIENT_ID = '', GOOGLE_CLIENT_SECRET = '', HOST = '' } = process.env;
 
 passport.serializeUser((user: IUser, done) => {
 	done(null, user.id);
@@ -37,7 +37,7 @@ passport.use(
 	new GoogleStrategy(
 		{
 			// Options
-			callbackURL: '/auth/google/redirect',
+			callbackURL: `${HOST}/auth/google/redirect`,
 			clientID: GOOGLE_CLIENT_ID,
 			clientSecret: GOOGLE_CLIENT_SECRET
 		},

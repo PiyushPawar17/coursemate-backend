@@ -1,6 +1,7 @@
 import { Router } from 'express';
 
 import {
+	getUser,
 	getSubmittedTutorials,
 	getFavorites,
 	getTracks,
@@ -18,6 +19,8 @@ import {
 import { loginCheck, superAdminCheck } from '../../utils/auth.utils';
 
 const router = Router();
+
+router.route('/').get(loginCheck, getUser);
 
 router.route('/submitted-tutorials').get(loginCheck, getSubmittedTutorials);
 

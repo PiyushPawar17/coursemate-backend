@@ -11,6 +11,18 @@ import { validateUser, validateTrackProgress } from '../utils/user.utils';
 
 // ----- GET REQUESTS -----
 
+// Route -> /api/user
+// Access -> Private
+export const getUser = (req: Request, res: Response) => {
+	const user = req.user as IUser;
+
+	if (!user) {
+		res.status(401).json({ errorMessage: 'User not logged in' });
+	} else {
+		res.json({ user });
+	}
+};
+
 // Route -> /api/user/submitted-tutorials
 // Access -> Private
 export const getSubmittedTutorials = (req: Request, res: Response) => {

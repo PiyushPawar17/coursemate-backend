@@ -3,6 +3,7 @@ import passport from 'passport';
 import cookieSession from 'cookie-session';
 import dotenv from 'dotenv';
 import path from 'path';
+import cors from 'cors';
 
 // Set environment variables
 if (process.env.NODE_ENV === 'test') {
@@ -26,6 +27,9 @@ import feedbackRoutes from './routes/api/feedbacks';
 connectDB();
 
 const app: Application = express();
+
+// Enable CORS
+app.use(cors());
 
 // Parse to JSON
 app.use(express.json());

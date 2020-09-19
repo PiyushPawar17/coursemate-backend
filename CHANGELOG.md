@@ -1,3 +1,15 @@
+## 1.2.0 (September 19, 2020)
+
+### Added
+
+-   Cors
+-   `/api/user` to get current user
+
+### Updated
+
+-   Google Auth callback to point to localhost in development
+-   `/api/tags` to get only approved tags
+
 ## 1.1.0 (July 1, 2020)
 
 ### Removed
