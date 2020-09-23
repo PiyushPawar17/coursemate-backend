@@ -242,10 +242,10 @@ Access: Public
 ```
 
 ```yml
-Route: /api/tutorials/tag/:tagId
+Route: /api/tutorials/tag/:tag
 Description: Returns the list of tutorials with the given tag
 RequestParams:
-    tagId: MongoId of the tag
+    tag: Slug of the tag
 Access: Public
 ```
 

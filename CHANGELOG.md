@@ -1,3 +1,10 @@
+## 1.2.1 (September 23, 2020)
+
+### Updated
+
+-   `/api/tutorials/tag/:tag` to use slug of tag instead of MongoId
+-   Tests for `/api/tutorials/tag/:tag`
+
 ## 1.2.0 (September 19, 2020)
 
 ### Added

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 
 import Tutorial from '../models/Tutorial';
+import Tag from '../models/Tag';
 import { IUser } from '../models/types';
 
 import { validateTutorial, validateUpdate } from '../utils/tutorials.utils';
@@ -55,28 +56,37 @@ export const getTutorial = (req: Request, res: Response) => {
 		});
 };
 
-// Route -> /api/tutorials/tag/:tagId
+// Route -> /api/tutorials/tag/:tag
 // Access -> Public
 export const getTutorialsByTag = (req: Request, res: Response) => {
-	const { tagId } = req.params;
+	const { tag } = req.params;
 
-	if (!mongoose.Types.ObjectId.isValid(tagId)) {
-		return res.status(400).json({ error: true, errorMessage: 'Invalid Tag Id' });
-	}
+	Tag.findOne({ slug: tag })
+		.then(currentTag => {
+			if (!currentTag) {
+				return Promise.reject({
+					customError: true,
+					errorCode: 404,
+					errorMessage: 'Tag not found'
+				});
+			}
 
-	const id = new mongoose.Types.ObjectId(tagId);
-
-	Tutorial.find({ tags: id })
-		.sort({ title: 1 })
-		.populate('tags', ['name', 'slug'])
-		.then(tutorials => {
-			res.json({ tutorials });
+			Tutorial.find({ tags: currentTag._id, isApproved: true })
+				.sort({ title: 1 })
+				.populate('tags', ['name', 'slug'])
+				.then(tutorials => {
+					res.json({ tutorials, currentTag: currentTag.name });
+				});
 		})
 		.catch(error => {
-			res.status(500).json({
-				error,
-				errorMessage: 'Unable to get tutorials of the given tag'
-			});
+			if (error.customError) {
+				res.status(error.errorCode).json({ error, errorMessage: error.errorMessage });
+			} else {
+				res.status(500).json({
+					error,
+					errorMessage: 'Unable to get tutorials of the given tag'
+				});
+			}
 		});
 };
 

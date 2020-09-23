@@ -27,7 +27,7 @@ router
 	.get(getTutorial)
 	.delete(adminCheck, deleteTutorial);
 
-router.route('/tag/:tagId').get(getTutorialsByTag);
+router.route('/tag/:tag').get(getTutorialsByTag);
 
 router.route('/unapproved').get(adminCheck, getUnapprovedTutorials);
 

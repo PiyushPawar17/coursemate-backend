@@ -14,6 +14,7 @@ import {
 	removeTutorials
 } from './mocks/seed';
 import { users, tags, tutorials } from './mocks/data';
+import { slugifyTag } from '../utils/utils';
 
 const { COOKIE_KEY = '' } = process.env;
 
@@ -146,40 +147,22 @@ describe('Route /api/tutorials', () => {
 		});
 	});
 
-	describe('GET /api/tutorials/tag/:tagId', () => {
+	describe('GET /api/tutorials/tag/:tag', () => {
 		describe('Valid request tests', () => {
 			it('should get list of tutorials with the given tag', done => {
 				request(app)
-					.get(`/api/tutorials/tag/${tags[0]._id}`)
+					.get(`/api/tutorials/tag/${slugifyTag(tags[0].name)}`)
 					.expect(200)
 					.expect(res => {
-						const tutorialsWithTag = [...tutorials]
-							.filter(tutorial => {
-								return tutorial.tags.some(
-									(tag: any) =>
-										tag._id.toHexString() === tags[0]._id.toHexString()
-								);
-							})
-							.sort((tutorial1, tutorial2) =>
-								tutorial1.title > tutorial2.title ? 1 : -1
+						res.body.tutorials.forEach((tutorial: any) => {
+							const containTagId = tutorial.tags.some(
+								(tag: any) => tag._id === tags[0]._id.toHexString()
 							);
-
-						expect(res.body.tutorials.length).toBe(tutorialsWithTag.length);
-						tutorialsWithTag.forEach((tutorial, index) => {
-							expect(res.body.tutorials[index].title).toBe(tutorial.title);
+							expect(containTagId).toBeTruthy();
+							expect(tutorial.isApproved).toBeTruthy();
 						});
-					})
-					.end(done);
-			});
-		});
 
-		describe('Validation tests', () => {
-			it('should throw an error for invalid mongo id', done => {
-				request(app)
-					.get('/api/tutorials/tag/123')
-					.expect(400)
-					.expect(res => {
-						expect(res.body.errorMessage).toBe('Invalid Tag Id');
+						expect(res.body.currentTag).toBe(tags[0].name);
 					})
 					.end(done);
 			});
